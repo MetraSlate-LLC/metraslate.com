@@ -327,7 +327,9 @@
       mark('main .eyebrow', 'rv-rule', false);
       mark('main .sub, main section > .lede, main section > p, main .cta, main .creed p, main .rail, main .guess p', 'rv', false);
       mark('.card, .world, .speed, .square-col, .receipts li, .teases li, .episode, .local .card, .who, .where > div, .form-grid > *, form label', 'rv', true);
-      mark('.shot, .map, .panel', 'rv-curtain', true, true);
+      // the software screenshots carry no reveal at all (his call, 2026-08-19: the curtain over a picture that
+      // is itself still arriving read as the site loading slowly); they paint the moment they load, like text
+      mark('.map, .panel', 'rv-curtain', true, true);
 
       // the measured numbers count up to themselves the first time they are seen, then hold
       var figures = document.querySelectorAll('.speed-v, .receipts strong');
