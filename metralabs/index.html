@@ -548,6 +548,16 @@
           }
           return false;
         }
+        // The still stays over the frame until the piece is genuinely running: its fonts are in and it has had
+        // half a second to draw. The frame's load event fires before the piece has decoded its font or drawn
+        // a frame, and a phone that stalls there showed the piece's own first instant (a comb of three, a
+        // word in the fallback hand) instead of the settled picture (his catch, 2026-08-19).
+        var loaded = 0;
+        function running(doc) {
+          if (!loaded || Date.now() - loaded < 500) return false;
+          try { if (doc.fonts && doc.fonts.status !== 'loaded') return false; } catch (e) {}
+          return true;
+        }
         function watch() {
           if (frozen) return;
           var doc = null;
@@ -555,8 +565,10 @@
           var elapsed = Date.now() - started;
           if (doc) {
             tidy(doc);
+            var playing = slot.classList.contains('playing');
+            if (!playing && running(doc)) { slot.classList.add('playing'); playing = true; }
             // a piece marked loop is his little video: it keeps playing, the page only tidies it
-            if (kind === 'loop') { if (doc.getElementById('ui')) return; }
+            if (kind === 'loop') { if (playing) return; }
             else if (settled(doc, elapsed)) {
               frozen = true;
               try { f.contentWindow.requestAnimationFrame = function () { return 0; }; } catch (e) {}
@@ -565,7 +577,7 @@
           }
           if (elapsed < 40000) window.requestAnimationFrame(watch);
         }
-        f.addEventListener('load', function () { slot.classList.add('playing'); watch(); });
+        f.addEventListener('load', function () { loaded = Date.now(); watch(); });
         slot.appendChild(f);
       });
     })();
