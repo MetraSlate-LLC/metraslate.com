@@ -456,7 +456,9 @@
        every page's header markup stays as it is. */
     .nav-toggle { display: none; }
     @media (max-width: 900px) {
-      body > .wrap > header, .topbar header { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 14px 0 0; position: relative; }
+      /* the header stays pinned on a phone too (his ask): sticky is inherited from the base rule, so nothing
+         here may set position and undo it */
+      body > .wrap > header, .topbar header { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 14px 0 0; }
       .nav-toggle {
         display: inline-flex; align-items: center; gap: 10px; margin-left: auto; padding: 10px 12px; min-height: 44px;
         background: transparent; border: 1px solid var(--line-2); border-radius: 8px; color: var(--ink-2); cursor: pointer;
