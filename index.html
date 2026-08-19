@@ -181,7 +181,7 @@
 
     <main id="top">
       <div class="hero">
-        <div class="anim ms-build" data-anim="/brand/anim/metraslate-build.html" data-w="1920" data-h="1080" data-vw="1700" data-settle="loop" data-title="MetraSlate: the comb builds, the S threads" data-settings-key="ms-build-2" data-settings='{"pace":240,"draw":1.9,"hold":3.0,"cap":1,"wdel":0.55,"wfade":1.9,"sn":5,"cv":2,"sv":9,"rvk":0.35,"eck":0.45,"dtime":0.26,"vol":0.9}'>
+        <div class="anim ms-build" data-anim="/brand/anim/metraslate-build.html?v=4" data-w="1920" data-h="1080" data-vw="1700" data-settle="loop" data-title="MetraSlate: the comb builds, the S threads" data-settings-key="ms-build-2" data-settings='{"pace":240,"draw":1.9,"hold":3.0,"cap":1,"wdel":0.55,"wfade":1.9,"sn":5,"cv":2,"sv":9,"rvk":0.35,"eck":0.45,"dtime":0.26,"vol":0.9}'>
           <img class="anim-still" src="/brand/still-metraslate-build.png" alt="MetraSlate" />
         </div>
         <p class="eyebrow">MetraSlate LLC</p>
@@ -571,14 +571,26 @@
           if (ui && ui.style.display !== 'none') { ui.style.display = 'none'; centre(doc); }
         }
         // hold the settled frame: the piece is made to loop, a reading page is not
+        var holdSince = 0;
         function settled(doc, elapsed) {
           function op(el) { return el ? el.style.opacity : ''; }
           if (kind === 'mili') {
-            var wrap = doc.getElementById('wrap'), sub = doc.getElementById('sub');
-            if (!wrap || !sub || elapsed < 6250) return false;
-            var clones = wrap.querySelectorAll('svg:not(#base)');
-            for (var i = 0; i < clones.length; i++) if (op(clones[i]) !== '0') return false;
-            return wrap.style.filter === 'none' && op(wrap) === '1' && op(sub) === '0.9';
+            // The piece loops: write, glow, glitch (a white flash, the coloured clones), a short HOLD, then a fade
+            // and the next pass. The held frame is judged on COMPUTED styles, because the piece moves its layers
+            // with CSS transitions: an inline value reads as settled while the flash is still decaying or the
+            // word is still fading, and a freeze taken on inline values left phones holding a washed-out frame
+            // (his catch, 2026-08-19). And it has to hold for 300 ms: every one of these states also passes
+            // through the signature for an instant on its way somewhere else.
+            var wrap = doc.getElementById('wrap'), sub = doc.getElementById('sub'), flash = doc.getElementById('flash');
+            if (!wrap || !sub || elapsed < 3000) { holdSince = 0; return false; }
+            var win = doc.defaultView;
+            function cop(el) { return el ? parseFloat(win.getComputedStyle(el).opacity) : 1; }
+            var clones = wrap.querySelectorAll('svg:not(#base)'), quiet = win.getComputedStyle(wrap).filter === 'none';
+            for (var i = 0; i < clones.length; i++) if (cop(clones[i]) > 0.001) quiet = false;
+            var held = quiet && cop(wrap) > 0.999 && cop(sub) > 0.85 && cop(flash) < 0.001;
+            if (!held) { holdSince = 0; return false; }
+            if (!holdSince) { holdSince = Date.now(); return false; }
+            return Date.now() - holdSince >= 300;
           }
           if (kind === 'standard') {
             var lw = doc.getElementById('lockwrap'), sb = doc.getElementById('sub'), fl = doc.getElementById('flash');

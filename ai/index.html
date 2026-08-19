@@ -155,7 +155,7 @@
 
       <section id="mili">
         <div class="mili-hero">
-          <div class="anim mili-sig" data-anim="/brand/anim/mili-write.html" data-w="1200" data-h="675" data-vw="1250" data-settle="mili" data-title="mili, her signature">
+          <div class="anim mili-sig" data-anim="/brand/anim/mili-write.html?v=4" data-w="1200" data-h="675" data-vw="1250" data-settle="mili" data-title="mili, her signature">
             <img class="anim-still" src="/brand/still-mili.png" alt="mili by MetraSlate" />
           </div>
           <div class="mili-meet">
@@ -457,14 +457,26 @@
           if (ui && ui.style.display !== 'none') { ui.style.display = 'none'; centre(doc); }
         }
         // hold the settled frame: the piece is made to loop, a reading page is not
+        var holdSince = 0;
         function settled(doc, elapsed) {
           function op(el) { return el ? el.style.opacity : ''; }
           if (kind === 'mili') {
-            var wrap = doc.getElementById('wrap'), sub = doc.getElementById('sub');
-            if (!wrap || !sub || elapsed < 6250) return false;
-            var clones = wrap.querySelectorAll('svg:not(#base)');
-            for (var i = 0; i < clones.length; i++) if (op(clones[i]) !== '0') return false;
-            return wrap.style.filter === 'none' && op(wrap) === '1' && op(sub) === '0.9';
+            // The piece loops: write, glow, glitch (a white flash, the coloured clones), a short HOLD, then a fade
+            // and the next pass. The held frame is judged on COMPUTED styles, because the piece moves its layers
+            // with CSS transitions: an inline value reads as settled while the flash is still decaying or the
+            // word is still fading, and a freeze taken on inline values left phones holding a washed-out frame
+            // (his catch, 2026-08-19). And it has to hold for 300 ms: every one of these states also passes
+            // through the signature for an instant on its way somewhere else.
+            var wrap = doc.getElementById('wrap'), sub = doc.getElementById('sub'), flash = doc.getElementById('flash');
+            if (!wrap || !sub || elapsed < 3000) { holdSince = 0; return false; }
+            var win = doc.defaultView;
+            function cop(el) { return el ? parseFloat(win.getComputedStyle(el).opacity) : 1; }
+            var clones = wrap.querySelectorAll('svg:not(#base)'), quiet = win.getComputedStyle(wrap).filter === 'none';
+            for (var i = 0; i < clones.length; i++) if (cop(clones[i]) > 0.001) quiet = false;
+            var held = quiet && cop(wrap) > 0.999 && cop(sub) > 0.85 && cop(flash) < 0.001;
+            if (!held) { holdSince = 0; return false; }
+            if (!holdSince) { holdSince = Date.now(); return false; }
+            return Date.now() - holdSince >= 300;
           }
           if (kind === 'standard') {
             var lw = doc.getElementById('lockwrap'), sb = doc.getElementById('sub'), fl = doc.getElementById('flash');
