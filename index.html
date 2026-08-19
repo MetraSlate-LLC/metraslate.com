@@ -182,7 +182,7 @@
     <main id="top">
       <div class="hero">
         <div class="anim ms-build" data-anim="/brand/anim/metraslate-build.html" data-w="1920" data-h="1080" data-vw="1700" data-settle="loop" data-title="MetraSlate: the comb builds, the S threads" data-settings-key="ms-build-2" data-settings='{"pace":240,"draw":1.9,"hold":3.0,"cap":1,"wdel":0.55,"wfade":1.9,"sn":5,"cv":2,"sv":9,"rvk":0.35,"eck":0.45,"dtime":0.26,"vol":0.9}'>
-          <img class="anim-still" src="/brand/metraslate-mark-white-v3.png" alt="MetraSlate" />
+          <img class="anim-still" src="/brand/still-metraslate-build.png" alt="MetraSlate" />
         </div>
         <p class="eyebrow">MetraSlate LLC</p>
         <h1>Contract calibration and metrology work.</h1>
@@ -355,29 +355,33 @@
 
     /* the kit's animations: a native-size frame scaled into its slot; plays once, then holds its settled frame */
     .anim { position: relative; overflow: hidden; background: var(--canvas); }
-    .anim-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10%; }
+    /* the still is the piece's own settled frame, cut to the slot's shape, so it covers the slot edge to edge
+       exactly where the live frame lands: the instant before the frame loads looks like the piece, not a logo */
+    .anim-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .anim iframe { position: absolute; border: 0; pointer-events: none; background: var(--canvas); }
     .anim.playing .anim-still { visibility: hidden; }
 
-    /* Under 900px the labels no longer fit beside the mark, so the header takes two rows: the brand,
-       then the nav as one strip that scrolls sideways rather than wrapping into a block of links. */
+    /* Under 900px the labels no longer fit beside the mark: the header keeps one row (the brand and a
+       Menu button), and the pages open as a list beneath it on press (his ask, 2026-08-19: a sideways
+       strip did not make it apparent there were more pages). The button is added by the script below, so
+       every page's header markup stays as it is. */
+    .nav-toggle { display: none; }
     @media (max-width: 900px) {
-      body > .wrap > header, .topbar header { flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 0 0; }
-      body > .wrap > header .nav, .topbar header .nav {
-        gap: 18px; white-space: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
-        padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none;
-        /* the strip fades at its far edge, so a reader can tell it carries on past the glass */
-        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
-        mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
+      body > .wrap > header, .topbar header { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 14px 0 0; position: relative; }
+      .nav-toggle {
+        display: inline-flex; align-items: center; gap: 10px; margin-left: auto; padding: 10px 12px; min-height: 44px;
+        background: transparent; border: 1px solid var(--line-2); border-radius: 8px; color: var(--ink-2); cursor: pointer;
+        font-family: var(--font-data); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase;
       }
-      /* the strip is a control, not a scroll area whose furniture the reader should see */
-      body > .wrap > header .nav::-webkit-scrollbar, .topbar header .nav::-webkit-scrollbar { display: none; }
-      /* a flex label allowed to shrink breaks mid word; a thumb needs a target taller than the type */
-      body > .wrap > header .nav a, .topbar header .nav a { flex: 0 0 auto; padding: 12px 0; font-size: 13.5px; }
-      /* the last label needs room to clear the fade */
-      body > .wrap > header .nav a:last-child, .topbar header .nav a:last-child { padding-right: 44px; }
-      /* the pinned header is two rows tall here, so an anchored target has to clear both */
-      [id] { scroll-margin-top: 118px; }
+      .nav-toggle svg { width: 18px; height: 14px; display: block; }
+      .nav-toggle[aria-expanded="true"] { color: var(--ink); border-color: var(--ink-3); }
+      /* closed: the list is out of the flow; open: the pages as rows, each a full thumb's height */
+      body > .wrap > header .nav, .topbar header .nav { display: none; flex-basis: 100%; flex-direction: column; gap: 0; padding: 8px 0 10px; }
+      body > .wrap > header .nav.open, .topbar header .nav.open { display: flex; }
+      body > .wrap > header .nav a, .topbar header .nav a { padding: 13px 4px; font-size: 14px; border-bottom: 1px solid var(--line); }
+      body > .wrap > header .nav a:last-child, .topbar header .nav a:last-child { border-bottom: 0; }
+      /* the pinned header is taller here, so an anchored target has to clear it */
+      [id] { scroll-margin-top: 96px; }
       /* the slot's own width is the only measure the frame scales by, so it never exceeds its column */
       .anim { max-width: 100%; }
     }
@@ -403,6 +407,23 @@
   </style>
   <script>
     (function () {
+      // the menu on narrow screens: one Menu button beside the brand opens the pages as a list; a page
+      // press, a second press, or Escape closes it (the CSS hides the button past 900px, where the links
+      // sit in the header row as before)
+      var nav = document.querySelector('body > .wrap > header .nav, .topbar header .nav');
+      if (nav && nav.parentNode) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'nav-toggle';
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-controls', nav.id || (nav.id = 'site-nav'));
+        btn.innerHTML = '<svg viewBox="0 0 18 14" aria-hidden="true"><path d="M0 1h18M0 7h18M0 13h18" stroke="currentColor" stroke-width="2"/></svg><span>Menu</span>';
+        function setOpen(open) { nav.classList.toggle('open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); btn.querySelector('span').textContent = open ? 'Close' : 'Menu'; }
+        btn.addEventListener('click', function () { setOpen(!nav.classList.contains('open')); });
+        nav.addEventListener('click', function (ev) { if (ev.target && ev.target.closest && ev.target.closest('a')) setOpen(false); });
+        document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && nav.classList.contains('open')) setOpen(false); });
+        nav.parentNode.insertBefore(btn, nav);
+      }
       // the screenshots: click opens the picture big, on the page; click again or Escape closes it
       document.addEventListener('click', function (ev) {
         var a = ev.target && ev.target.closest ? ev.target.closest('a.shot') : null;
