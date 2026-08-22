@@ -567,6 +567,15 @@
         // a piece that reads its dials from localStorage gets them before it loads (same origin, so the slot can set them)
         var settingsKey = slot.getAttribute('data-settings-key');
         if (settingsKey) { try { localStorage.setItem(settingsKey, slot.getAttribute('data-settings') || ''); } catch (e) {} }
+        // The same dials, for the page's own clock: the moment to hold a piece is computed from what the slot
+        // handed it, never from the piece's defaults. A hold time read off the defaults left the live site frozen
+        // mid-draw under the slot's slower dials: the ribbon unfinished, no wordmark (his catch, 2026-08-22).
+        function dials(defaults) {
+          var d = {}; for (var k in defaults) d[k] = defaults[k];
+          try { var st = JSON.parse(slot.getAttribute('data-settings') || '{}'); for (var k2 in st) if (k2 in d) d[k2] = st[k2]; } catch (e) {}
+          return d;
+        }
+        function renderAt(doc, ms) { try { if (typeof doc.defaultView.renderAt === 'function') doc.defaultView.renderAt(ms / 1000); } catch (e) {} }
         var f = document.createElement('iframe');
         f.src = slot.getAttribute('data-anim');
         f.title = slot.getAttribute('data-title') || '';
@@ -652,20 +661,26 @@
             return Date.now() - holdSince >= 300;
           }
           if (kind === 'build') {
-            // The mark piece is a loop by construction: assemble the comb, draw the ribbon, hold three seconds,
-            // fade, again (its render is t modulo one pass, ~6.5 s). A reading page plays one pass and keeps the
-            // held frame (his call, 2026-08-21: not endlessly looping). The piece exposes renderAt(seconds), so the
-            // page asks for a frame inside the hold outright instead of guessing where the loop is, then stops
-            // the clock; by 4.2 s after the piece was running its first hold has begun under any font delay.
-            if (!loaded || Date.now() - loaded < 4200) return false;
-            try { if (typeof doc.defaultView.renderAt === 'function') doc.defaultView.renderAt(4.0); } catch (e) {}
+            // The mark piece is a loop by construction (metraslate-build.html, render()): the comb snaps in over
+            // 8 x pace + 190 + 220 ms, the ribbon draws for `draw` s, then the hold (`hold` s) in which the wordmark
+            // fades in from `wdel` over `wfade`, then a 420 ms fade and the next pass. A reading page plays one pass
+            // and keeps the held frame (his call, 2026-08-21: not endlessly looping): a frame inside the hold with
+            // the wordmark fully in, asked for through renderAt(seconds) once the piece has played that far.
+            var b = dials({ pace: 120, draw: 1.7, hold: 3.0, wdel: 0.12, wfade: 0.35 });
+            var snap = 8 * b.pace + 190 + 220, drawn = snap + b.draw * 1000, holdEnd = drawn + b.hold * 1000;
+            var at = Math.min(drawn + (b.wdel + b.wfade) * 1000 + 250, holdEnd - 150);
+            if (!loaded || Date.now() - loaded < at + 300) return false;
+            renderAt(doc, at);
             return true;
           }
           if (kind === 'standard') {
-            // The same shape as the mark: type the word (1.6 s), tear, slam (0.9 s), hold 3.2 s, fade, again.
-            // One pass, then the held frame: a frame inside the hold asked for by the clock, not guessed.
-            if (!loaded || Date.now() - loaded < 3800) return false;
-            try { if (typeof doc.defaultView.renderAt === 'function') doc.defaultView.renderAt(3.6); } catch (e) {}
+            // The same shape (standard-introducing.html, render()): INTRODUCING types for `type` s, tears 340 ms,
+            // STANDARD slams in over 560 ms, holds `hold` s with a 70 ms blip possible at each 900 ms boundary,
+            // fades 420 ms, again. The held frame sits 1.1 s into the hold: past the slam, off a blip boundary.
+            var s = dials({ type: 1.6, hold: 3.2 });
+            var holdStart = s.type * 1000 + 340 + 560, at2 = holdStart + 1100;
+            if (!loaded || Date.now() - loaded < at2 + 300) return false;
+            renderAt(doc, at2);
             return true;
           }
           return false;
