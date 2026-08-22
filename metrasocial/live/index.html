@@ -154,13 +154,13 @@
         <span>MetraSlate</span>
       </a>
       <nav class="nav" aria-label="Pages">
-        <a href="/">Services</a>
-        <a href="/standard/">Software</a>
+        <a href="https://metraslate.com/services/">Services</a>
+        <a href="https://metraslate.com/standard/">Software</a>
         <a href="/ai/">AI</a>
         <a href="/soon/">Coming soon</a>
         <a href="/investors/">Investors</a>
         <a href="/contact/">Contact</a>
-        <a class="request" href="/request/">Request services</a>
+        <a class="request" href="https://metraslate.com/request/">Request services</a>
       </nav>
     </header>
   </div>
@@ -634,22 +634,22 @@
       // the top of the page on arrival, and the named list at the end of the read. The clauses are each
       // page's own h1 or eyebrow, shortened; none of them is a claim the page does not already make.
       var pages = [
-        ['/', 'Services', 'metrology and calibration services'],
-        ['/standard/', 'Standard', 'run the whole business on one system'],
-        ['/ai/', 'AI', 'AI at the edges, never in the measurement'],
-        ['/asset/', 'ASSET', 'know every instrument'],
-        ['/metralabs/', 'MetraLabs', 'the lab you need is one search away'],
-        ['/metrasocial/', 'MetraSocial', "the industry's own room"],
-        ['/investors/', 'Investors', 'metrology services and enterprise software, one company'],
-        ['/contact/', 'Contact', 'every way to reach us'],
-        ['/request/', 'Request services', 'tell us what needs calibrating, how many, where, and when']
+        ['https://metraslate.com/services/', 'Services', 'metrology and calibration services'],
+        ['https://metraslate.com/standard/', 'Standard', 'run the whole business on one system'],
+        ['https://metraslate.com/ai/', 'AI', 'AI at the edges, never in the measurement'],
+        ['https://metraslate.com/asset/', 'ASSET', 'know every instrument'],
+        ['https://metraslate.com/metralabs/', 'MetraLabs', 'the lab you need is one search away'],
+        ['https://metraslate.com/metrasocial/', 'MetraSocial', "the industry's own room"],
+        ['https://metraslate.com/investors/', 'Investors', 'metrology services and enterprise software, one company'],
+        ['https://metraslate.com/contact/', 'Contact', 'every way to reach us'],
+        ['https://metraslate.com/request/', 'Request services', 'tell us what needs calibrating, how many, where, and when']
       ];
       // The show page hangs its header inside a .topbar and is left alone, so this selector is the
       // guard as much as it is the anchor: no header of this shape, no row.
       var head = document.querySelector('body > .wrap > header');
       var foot = head && document.querySelector('body > .wrap > footer');
       if (head) {
-        var here = location.pathname.replace(/index.html$/, '');
+        var here = location.origin + location.pathname.replace(/index.html$/, '');
         if (here.charAt(here.length - 1) !== '/') here += '/';
         var row = document.createElement('nav');
         row.className = 'pagerow';
