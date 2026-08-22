@@ -51,8 +51,11 @@
     .company a:hover { color: var(--ink); }
     /* a front door is one screen, so the piece is capped rather than run to the full column as it is on a
        page you read down: at 720px the doors are still above the fold on a 800px laptop */
-    .hero { padding: 34px 0 0; }
-    .ms-build { width: 100%; max-width: 720px; aspect-ratio: 16 / 7.9; margin: 0 0 20px; }
+    /* the mark is the page's centre line (his word 2026-08-22: off-centre "looks stupid"); the hero centres under it, the doors below keep their grid */
+    .hero { padding: 34px 0 0; text-align: center; }
+    .hero h1, .hero .sub { margin-left: auto; margin-right: auto; }
+    .hero .eyebrow.rv-rule::after { left: 50%; margin-left: -17px; transform-origin: center; }
+    .ms-build { width: 100%; max-width: 720px; aspect-ratio: 16 / 7.9; margin: 0 auto 20px; }
     .eyebrow { margin: 0 0 16px; font-family: var(--font-data); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); }
     h1 { margin: 0; font-size: 40px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 600; max-width: 34ch; }
     main { padding-bottom: 40px; }
