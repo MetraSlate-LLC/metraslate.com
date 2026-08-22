@@ -191,7 +191,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Standard">
         <a href="/">Overview</a>
         <a href="/standard/platform/">What It Runs</a>
@@ -205,7 +205,7 @@
     <main id="top">
       <section id="early-access">
         <p class="eyebrow">Early access</p>
-        <h1>Get Early Access to Standard.</h1>
+        <h1>Get Early Access to <span class="wm-word">STANDARD</span>.</h1>
         <p class="lede">Tell us who you are and what you run today. Early access goes to the labs and businesses that shape the product with us, and you hear from a person, not a drip campaign.</p>
         <form class="form" id="early" data-endpoint="https://formspree.io/f/maewlgwz" novalidate>
           <div><label for="e-name">Your name</label><input id="e-name" name="name" autocomplete="name" required /></div>
@@ -213,7 +213,7 @@
           <div><label for="e-company">Company</label><input id="e-company" name="company" autocomplete="organization" required /></div>
           <div><label for="e-email">Email</label><input id="e-email" name="email" type="email" autocomplete="email" required /></div>
           <div class="more-field"><label for="e-size">How big is the operation</label><select id="e-size" name="size"><option value="">Choose one</option><option>One lab, a few people</option><option>One lab, a full crew</option><option>Several labs or sites</option><option>An enterprise network</option><option>We own instruments, we do not calibrate them</option></select></div>
-          <div class="more-field"><label for="e-interest">What you are here for</label><select id="e-interest" name="interest"><option value="">Choose one</option><option>Standard, the whole platform</option><option>The Metrology Edition</option><option>Asset</option><option>MetraLabs by MetraSlate</option><option>MetraSlate AI</option><option>Not sure yet</option></select></div>
+          <div class="more-field"><label for="e-interest">What you are here for</label><select id="e-interest" name="interest"><option value="">Choose one</option><option><span class="wm-word">STANDARD</span>, the whole platform</option><option>The Metrology Edition</option><option><span class="wm-word">ASSET</span></option><option><span class="wm-word wm-mixed">MetraLabs</span> by <span class="wm-word">METRASLATE</span></option><option><span class="wm-word">METRASLATE</span> AI</option><option>Not sure yet</option></select></div>
           <div class="full"><label for="e-today">What you run today</label><textarea id="e-today" name="today" placeholder="The systems and spreadsheets your records live in now, and what hurts most"></textarea></div>
           <div class="hp" aria-hidden="true"><label for="e-web">Website</label><input id="e-web" name="_gotcha" tabindex="-1" autocomplete="off" /></div>
           <button type="button" class="more-toggle full" aria-expanded="false">More Detail</button>
@@ -227,7 +227,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -312,6 +312,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

@@ -191,7 +191,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Standard">
         <a href="/">Overview</a>
         <a href="/standard/platform/">What It Runs</a>
@@ -206,7 +206,7 @@
       <section id="metrology">
         <p class="eyebrow">The Metrology Edition</p>
         <h1>Uncertainty at the Point of Capture.</h1>
-        <p class="lede">Standard itself is agnostic: it can be shaped to serve any and every industry. We started with calibration, and the Metrology Edition is the one MetraSlate Metrology and Calibration Services runs its own calibrations on. In it, the reading, its uncertainty and the guardbanded decision are calculated instantly, automatically, and in the same transaction that stores the value. The math travels with the record.</p>
+        <p class="lede"><span class="wm-word">STANDARD</span> itself is agnostic: it can be shaped to serve any and every industry. We started with calibration, and the Metrology Edition is the one <span class="wm-word">METRASLATE</span> Metrology and Calibration Services runs its own calibrations on. In it, the reading, its uncertainty and the guardbanded decision are calculated instantly, automatically, and in the same transaction that stores the value. The math travels with the record.</p>
         <div class="panel">
           <div class="panel-head"><span>DC voltage · 10 V point · tolerance ±0.0012 V</span><span>TUR 2.8 : 1</span></div>
           <!-- one scale for everything drawn: the tolerance half-width 0.0012 V is 220 units, so U (0.00043 V) is 79 units,
@@ -237,7 +237,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -279,6 +279,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

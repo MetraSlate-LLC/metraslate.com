@@ -191,7 +191,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Standard">
         <a href="/">Overview</a>
         <a href="/standard/platform/">What It Runs</a>
@@ -205,30 +205,30 @@
     <main id="top">
       <section id="proof">
         <p class="eyebrow">Where it runs</p>
-        <h1>MetraSlate Runs Its Own Calibration Work on It.</h1>
+        <h1><span class="wm-word">METRASLATE</span> Runs Its Own Calibration Work on It.</h1>
         <div class="proof">
-          <p>MetraSlate is a metrology and calibration services company as well as the software's maker. Our own metrology and calibration services run on Standard, so every job we take is also a live proof of the system: the estimate, the work order, the calibration record, the certificate and the invoice, all on one spine.</p>
+          <p><span class="wm-word">METRASLATE</span> is a metrology and calibration services company as well as the software's maker. Our own metrology and calibration services run on <span class="wm-word">STANDARD</span>, so every job we take is also a live proof of the system: the estimate, the work order, the calibration record, the certificate and the invoice, all on one spine.</p>
         </div>
         <div class="hosting">
-          <div class="world"><h3>Cloud Hosted, or Yours</h3><p>Standard is cloud hosted on AWS, or hosted locally on hardware you own, where your regulations or your preference say so. Same platform, same records, either way.</p></div>
+          <div class="world"><h3>Cloud Hosted, or Yours</h3><p><span class="wm-word">STANDARD</span> is cloud hosted on AWS, or hosted locally on hardware you own, where your regulations or your preference say so. Same platform, same records, either way.</p></div>
           <div class="world"><h3>Designed to Be SOC 2 Compliant</h3><p>The platform was built that way from the first line of code.</p></div>
         </div>
       </section>
 
       <section id="metralabs">
-        <p class="eyebrow">MetraLabs by MetraSlate, the top of the funnel</p>
+        <p class="eyebrow"><span class="wm-word wm-mixed">MetraLabs</span> by <span class="wm-word">METRASLATE</span>, the top of the funnel</p>
         <h2>Where the Work Comes From.</h2>
-        <p class="lede">MetraLabs by MetraSlate is the network that brings the jobs in. Run Standard alongside it for a substantial discount on the software, or work through it exclusively and the software is free.</p>
+        <p class="lede"><span class="wm-word wm-mixed">MetraLabs</span> by <span class="wm-word">METRASLATE</span> is the network that brings the jobs in. Run <span class="wm-word">STANDARD</span> alongside it for a substantial discount on the software, or work through it exclusively and the software is free.</p>
         <div class="cta">
           <a class="btn" href="mailto:hello@metraslate.com?subject=MetraLabs%20by%20MetraSlate">Inquire</a>
-          <p class="plain"><a href="https://metraslate.com/metralabs/">Read about MetraLabs by MetraSlate</a></p>
+          <p class="plain"><a href="https://metraslate.com/metralabs/">Read about <span class="wm-word wm-mixed">MetraLabs</span> by <span class="wm-word">METRASLATE</span></a></p>
           <p class="plain"><a href="https://metraslate.com/soon/">What is coming</a></p>
         </div>
       </section>
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -270,6 +270,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

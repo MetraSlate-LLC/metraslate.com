@@ -179,7 +179,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/" aria-current="true">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/" aria-current="true">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Services">
         <span aria-current="page">Services</span>
         <a href="/services/onsite/">Onsite</a>
@@ -197,7 +197,7 @@
         <div class="anim ms-build" data-anim="/brand/anim/metraslate-build.html?v=6" data-w="1920" data-h="1080" data-vw="1700" data-settle="build" data-title="MetraSlate: the comb builds, the S threads" data-settings-key="ms-build-2" data-settings='{"pace":240,"draw":1.9,"hold":3.0,"cap":1,"wdel":0.55,"wfade":1.9,"sn":5,"cv":2,"sv":9,"rvk":0.35,"eck":0.45,"dtime":0.26,"vol":0.9}'>
           <img class="anim-still" src="/brand/still-metraslate-build.png" alt="MetraSlate" />
         </div>
-        <p class="eyebrow">MetraSlate LLC</p>
+        <p class="eyebrow"><span class="wm-word">METRASLATE</span> LLC</p>
         <h1>Metrology and Calibration Services.</h1>
         <p class="sub">We calibrate onsite: your instruments, your schedule, the service level you choose, and the paperwork done right.</p>
         <div class="cta">
@@ -225,11 +225,11 @@
           <img src="/brand/standard-s-mark-transparent-white.png" alt="" />
           <div class="std-words">
             <span class="std-wordmark">STANDARD</span>
-            <span class="std-edition">Metrology Edition <span aria-hidden="true">·</span> by MetraSlate</span>
+            <span class="std-edition">Metrology Edition <span aria-hidden="true">·</span> by <span class="wm-word">METRASLATE</span></span>
           </div>
         </div>
-        <h2>The Standard of the Calibration Industry.</h2>
-        <p><a class="btn" href="https://metraslate.com/standard/">See Standard</a></p>
+        <h2>The <span class="wm-word">STANDARD</span> of the Calibration Industry.</h2>
+        <p><a class="btn" href="https://metraslate.com/standard/">See <span class="wm-word">STANDARD</span></a></p>
       </section>
 
       <section id="contact" class="contact">
@@ -251,7 +251,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -293,6 +293,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

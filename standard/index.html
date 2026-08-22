@@ -194,7 +194,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Standard">
         <span aria-current="page">Overview</span>
         <a href="/standard/platform/">What It Runs</a>
@@ -212,7 +212,7 @@
         </div>
         <p class="tagline">Built for any industry.</p>
         <h1>Run the Whole Business on One System.</h1>
-        <p class="sub">Standard is one system, from lead generation through delivery and accounts receivable, for any industry. The Metrology Edition is its first edition: the same system, with the bench built in.</p>
+        <p class="sub"><span class="wm-word">STANDARD</span> is one system, from lead generation through delivery and accounts receivable, for any industry. The Metrology Edition is its first edition: the same system, with the bench built in.</p>
         <div class="cta">
           <a class="btn" href="/standard/early-access/">Get early access</a>
           <p class="plain"><a href="mailto:hello@metraslate.com">hello@metraslate.com</a></p>
@@ -241,7 +241,7 @@
           </a>
           <a class="world door" href="/standard/sigma/">
             <p class="eyebrow">Sigma</p>
-            <h3>Your Deviation from the Standard.</h3>
+            <h3>Your Deviation from the <span class="wm-word">STANDARD</span>.</h3>
           </a>
           <a class="world door" href="/standard/metrology/">
             <p class="eyebrow">The Metrology Edition</p>
@@ -249,18 +249,18 @@
           </a>
           <a class="world door" href="/standard/hosting/">
             <p class="eyebrow">Where it runs</p>
-            <h3>MetraSlate Runs Its Own Calibration Work on It.</h3>
+            <h3><span class="wm-word">METRASLATE</span> Runs Its Own Calibration Work on It.</h3>
           </a>
           <a class="world door" href="/standard/early-access/">
             <p class="eyebrow">Early access</p>
-            <h3>Get Early Access to Standard.</h3>
+            <h3>Get Early Access to <span class="wm-word">STANDARD</span>.</h3>
           </a>
         </div>
       </section>
 
       <section id="contact" class="close">
-        <h2>Set the Standard for Your Industry.</h2>
-        <p class="lede">The hard part was never the software: it is knowing what the work actually needs at 2am when a result fails. Standard was built by people who did that work, for every business that has its own version of it. MetraSlate is bootstrapped, and we are actively beginning the funding journey.</p>
+        <h2>Set the <span class="wm-word">STANDARD</span> for Your Industry.</h2>
+        <p class="lede">The hard part was never the software: it is knowing what the work actually needs at 2am when a result fails. <span class="wm-word">STANDARD</span> was built by people who did that work, for every business that has its own version of it. <span class="wm-word">METRASLATE</span> is bootstrapped, and we are actively beginning the funding journey.</p>
         <div class="cta">
           <a class="btn" href="mailto:hello@metraslate.com?subject=Standard%20inquiry">Inquire</a>
           <a class="btn btn-quiet" href="/standard/early-access/">Get early access</a>
@@ -270,7 +270,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -312,6 +312,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

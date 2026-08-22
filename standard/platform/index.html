@@ -191,7 +191,7 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/" aria-current="true"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
       <nav class="tabs" aria-label="Standard">
         <a href="/">Overview</a>
         <span aria-current="page">What It Runs</span>
@@ -210,7 +210,7 @@
         <div class="worlds">
           <div class="world"><h3>Lead Generation</h3><p>SEO and outreach find buyers, and every lead lands in the system.</p></div>
           <div class="world"><h3>Full CRM</h3><p>Lead to opportunity to estimate to work order, one unbroken chain.</p></div>
-          <div class="world"><h3>Asset Management</h3><p>Every asset you or your customers own, its history and its schedule.</p></div>
+          <div class="world"><h3><span class="wm-word">ASSET</span> Management</h3><p>Every asset you or your customers own, its history and its schedule.</p></div>
           <div class="world"><h3>Logistics</h3><p>Routes ordered for you. The driver's next stop, one press from navigation.</p></div>
           <div class="world"><h3>Quality Control</h3><p>Review gates where you need them, the verdict kept on the record.</p></div>
           <div class="world"><h3>Workflow Automation</h3><p>Your rules run the routine steps, so nobody has to remember them.</p></div>
@@ -243,7 +243,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -285,6 +285,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }

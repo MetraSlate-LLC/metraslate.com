@@ -118,13 +118,13 @@
 </svg>
 
       </a>
-      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/">Standard</a><a href="https://metraslate.com/asset/">Asset</a><a href="https://metraslate.com/metralabs/">MetraLabs</a><a href="https://metraslate.com/metrasocial/">MetraSocial</a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/" aria-current="true">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
+      <nav class="nav" aria-label="Pages"><a href="https://metraslate.com/standard/"><span class="wm-word">STANDARD</span></a><a href="https://metraslate.com/asset/"><span class="wm-word">ASSET</span></a><a href="https://metraslate.com/metralabs/"><span class="wm-word wm-mixed">MetraLabs</span></a><a href="https://metraslate.com/metrasocial/"><span class="wm-word wm-mixed">MetraSocial</span></a><a href="https://metraslate.com/ai/">AI</a><a href="https://metraslate.com/services/">Services</a><a href="https://metraslate.com/investors/">Investors</a><a href="https://metraslate.com/contact/" aria-current="true">Contact</a><a class="request" href="https://metraslate.com/request/">Request Services</a></nav>
     </header>
 
     <main id="top">
       <div class="hero">
         <p class="eyebrow">Contact</p>
-        <h1>Welcome to the World of MetraSlate</h1>
+        <h1>Welcome to the World of <span class="wm-word">METRASLATE</span></h1>
         <p class="sub">Write to the address that fits. Every message reaches a person who can answer it.</p>
       </div>
 
@@ -135,7 +135,7 @@
           <a class="mail" href="mailto:sales@metraslate.com?subject=Contract%20calibration%20work">sales@metraslate.com</a>
         </div>
         <div class="card">
-          <h2>Standard by MetraSlate</h2>
+          <h2><span class="wm-word">STANDARD</span> by <span class="wm-word">METRASLATE</span></h2>
           <p>Questions about the platform, a conversation, or a look at it running.</p>
           <a class="mail" href="mailto:hello@metraslate.com?subject=Standard">hello@metraslate.com</a>
         </div>
@@ -147,16 +147,16 @@
       </div>
 
       <section class="social" aria-label="Social media">
-        <h2>Follow MetraSlate</h2>
+        <h2>Follow <span class="wm-word">METRASLATE</span></h2>
         <div class="social-row">
-          <a href="https://x.com/MetraSlate" rel="noreferrer" aria-label="MetraSlate on X"><img src="/brand/x-icon-white.png" alt="" /><span>@MetraSlate</span></a>
-          <a href="https://www.linkedin.com/company/metraslate" rel="noreferrer" aria-label="MetraSlate on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9.5 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.5c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21h-4z"/></svg><span>MetraSlate</span></a>
+          <a href="https://x.com/MetraSlate" rel="noreferrer" aria-label="MetraSlate on X"><img src="/brand/x-icon-white.png" alt="" /><span>@<span class="wm-word">METRASLATE</span></span></a>
+          <a href="https://www.linkedin.com/company/metraslate" rel="noreferrer" aria-label="MetraSlate on LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9.5 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.5c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21h-4z"/></svg><span><span class="wm-word">METRASLATE</span></span></a>
         </div>
       </section>
 
       <div class="where">
         <div class="who">
-          <strong>MetraSlate LLC</strong><br />
+          <strong><span class="wm-word">METRASLATE</span> LLC</strong><br />
           Portsmouth, Virginia<br />
           Proudly serving the Hampton Roads area, with travel available beyond it. Next, everywhere.<br />
           <a href="mailto:hello@metraslate.com">hello@metraslate.com</a> for anything else.
@@ -165,7 +165,7 @@
     </main>
 
     <footer>
-      <span>MetraSlate LLC</span>
+      <span><span class="wm-word">METRASLATE</span> LLC</span>
       <span>Portsmouth, Virginia. Metrology and calibration services. Enterprise software.</span>
     </footer>
   </div>
@@ -207,6 +207,10 @@
     .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
+    /* a product name in running text is set like its wordmark (his word 2026-08-22): the kit's Archivo 800 at 125%,
+       a shade smaller than the surrounding size so its cap height matches the text's */
+    .wm-word { font-family: 'Archivo', var(--font-ui); font-weight: 800; font-stretch: 125%; letter-spacing: 0; font-size: .9em; }
+    .wm-word.wm-mixed { letter-spacing: -.022em; }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
     .brand .wm text { transition: fill .2s ease; }
     .brand:hover .wm text { fill: var(--accent-ink); }
