@@ -14,7 +14,7 @@
   <link rel="apple-touch-icon" href="/favicon.png?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     /* The site's own ground and dials (marketing-site/src/site.css): true black canvas, the
        violet accent, Geist for words, Plex Mono for labels. Self-contained on purpose: one file,
@@ -33,8 +33,9 @@
       --accent: oklch(0.6204 0.195 287);
       --accent-hover: color-mix(in oklab, var(--accent) 90%, var(--ink) 10%);
       --accent-ink: color-mix(in oklab, var(--accent) 80%, var(--ink) 30%);
-      --font-ui: 'Geist Sans', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-      --font-data: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --font-ui: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-data: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --font-mark: 'Archivo', ui-sans-serif, system-ui, sans-serif;
       --radius: 0.5rem;
     }
     html { background: var(--canvas); }
@@ -60,9 +61,6 @@
       color: var(--ink-2);
     }
     .brand .wm { height: 13px; width: auto; display: block; }
-    .nav { display: flex; gap: 26px; font-family: var(--font-data); font-size: 12.5px; letter-spacing: .06em; }
-    .nav a { color: var(--ink-3); text-decoration: none; }
-    .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .hero { padding: 40px 0 56px; border-bottom: 1px solid var(--line); }
     /* the house mark builds itself above the front door (his piece, metraslate-build; his dials ride in as its settings) */
     /* the comb, the ribbon and the METRASLATE word span native rows 136 to 945 of 1080: the window is cut to hold all of it */
@@ -283,12 +281,16 @@
        on is marked, not offered. On a phone the row scrolls sideways under a thumb. */
     nav.tabs { display: flex; gap: 26px; flex-basis: 100%; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
     nav.tabs::-webkit-scrollbar { display: none; }
-    nav.tabs a, nav.tabs span { display: block; padding: 8px 0 10px; font-family: var(--font-ui); font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--ink-3); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
+    nav.tabs a, nav.tabs span { display: block; padding: 8px 0 10px; font-family: 'Archivo', var(--font-ui); font-size: 14px; font-weight: 600; font-stretch: 112%; letter-spacing: 0; color: var(--ink-3); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; }
     nav.tabs a:hover { color: var(--ink); }
     nav.tabs [aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
     body > .wrap > header { flex-wrap: wrap; }
     /* "quote from every page" (his 16:59 direction): the request door rides the header on every page as the one
        button there, so it reads as an action, not a section */
+    /* the site nav, one home: the kit's headline face (Archivo 700 at 112%), never the data mono (his word 2026-08-22) */
+    .nav { display: flex; gap: 24px; flex-wrap: wrap; justify-content: flex-end; font-family: 'Archivo', var(--font-ui); font-size: 14.5px; font-weight: 700; font-stretch: 112%; letter-spacing: 0; }
+    .nav a { color: var(--ink-3); text-decoration: none; }
+    .nav a:hover, .nav a[aria-current] { color: var(--ink); }
     .nav a.request { color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 12px; margin: -8px 0; }
     .nav a.request:hover { border-color: var(--accent-ink); }
     /* the brand lockup answers a hover like the door names do (his word 2026-08-22 18:5x) */
