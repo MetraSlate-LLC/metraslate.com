@@ -710,7 +710,7 @@
           }
           if (elapsed < 40000) window.requestAnimationFrame(watch);
         }
-        f.addEventListener('load', function () { loaded = Date.now(); watch(); });
+        f.addEventListener('load', function () { loaded = Date.now(); slot.classList.add('playing'); watch(); }); // 'playing' lets a page time its own words to the piece (the landing's lockup)
         slot.appendChild(f);
       });
     })();

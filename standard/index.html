@@ -208,7 +208,7 @@
 
     <main id="top">
       <div class="hero">
-        <div class="anim std-reveal" data-anim="/brand/anim/standard-introducing.html?v=4" data-w="1200" data-h="675" data-vw="1430" data-settle="standard" data-title="Standard by MetraSlate" data-settings-key="std-intro-1" data-settings='{"type":1.6,"hold":3.2}'>
+        <div class="anim std-reveal" data-anim="/brand/anim/standard-introducing.html?v=5" data-w="1200" data-h="675" data-vw="1430" data-settle="standard" data-title="Standard by MetraSlate" data-settings-key="std-intro-1" data-settings='{"type":1.6,"hold":3.2}'>
           <img class="anim-still" src="/brand/still-standard.png" alt="Standard by MetraSlate" />
         </div>
         <p class="tagline">Built for any industry.</p>
@@ -815,7 +815,7 @@
           }
           if (elapsed < 40000) window.requestAnimationFrame(watch);
         }
-        f.addEventListener('load', function () { loaded = Date.now(); watch(); });
+        f.addEventListener('load', function () { loaded = Date.now(); slot.classList.add('playing'); watch(); }); // 'playing' lets a page time its own words to the piece (the landing's lockup)
         slot.appendChild(f);
       });
     })();
