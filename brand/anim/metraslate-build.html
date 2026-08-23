@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MetraSlate — the comb builds, the S threads</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000000; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000000; z-index: 9999; }
+    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
+    #__bundler_placeholder { color: #999; font-size: 14px; }
+  </style>
+  <noscript>
+    <style>#__bundler_loading { display: none; }</style>
+    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
+      This page requires JavaScript to display.
+    </div>
+  </noscript>
+</head>
+<body>
+  <div id="__bundler_thumbnail">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="400" fill="#000000"></rect>
+    <polygon points="130,140 165,160 165,200 130,220 95,200 95,160" fill="#836cf3" stroke="#ffffff" stroke-width="6"></polygon>
+    <polygon points="200,180 235,200 235,240 200,260 165,240 165,200" fill="#836cf3" stroke="#ffffff" stroke-width="6"></polygon>
+    <polygon points="270,140 305,160 305,200 270,220 235,200 235,160" fill="#836cf3" stroke="#ffffff" stroke-width="6"></polygon>
+    <text x="200" y="235" font-size="150" fill="#ffffff" font-family="Georgia, serif" text-anchor="middle">S</text>
+  </svg>
+</div>
+  <div id="__bundler_loading">Unpacking...</div>
+
+  <script>
+    
+document.addEventListener('DOMContentLoaded', async function() {
+  const loading = document.getElementById('__bundler_loading');
+  function setStatus(msg) { if (loading) loading.textContent = msg; }
+
+  const FONT_MIME = /^(font[/]|application[/](x-)?font-|application[/]vnd\.ms-fontobject)/i;
+  const MIME_TOKEN = /^[\w.+-]+[/][\w.+-]+$/;
+  function toBase64(bytes) {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+  }
+
+  // Error sink persists across replaceWith since it's on window, not the DOM.
+  window.addEventListener('error', function(e) {
+    // Failed resource loads (CSP-blocked links, scripts, images) fire plain
+    // events at the element — warn only; real JS errors carry message/error.
+    if (!e.message && !e.error && e.target && e.target !== window) {
+      console.warn('[bundle] resource failed to load:',
+        e.target.tagName, String(e.target.src || e.target.href || ''));
+      return;
+    }
+    var p = document.body || document.documentElement;
+    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
+    d.id = '__bundler_err';
+    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
+      '[bundle] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
+  }, true);
+
+  try {
+    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
+    const templateEl = document.querySelector('script[type="__bundler/template"]');
+    if (!manifestEl || !templateEl) {
+      setStatus('Error: missing bundle data');
+      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
+      return;
+    }
+
+    const manifest = JSON.parse(manifestEl.textContent);
+    let template = JSON.parse(templateEl.textContent);
+
+    // Nested page bundles (iframe targets). Each ships ONCE, in the ROOT
+    // document's manifest; frame srcs carry an about:blank#<uuid> marker
+    // instead of a substitutable uuid. Every document mints the blobs for
+    // its OWN frames — from local text at the root, or text obtained from
+    // its DIRECT parent over the relay protocol below — so each frame
+    // navigation stays same-origin with its initiator and a deduped page
+    // loads at any depth on any host, including a file:// download's
+    // opaque origins (where a blob minted by one document cannot be
+    // navigated to by another).
+    const pageOrderEl = document.querySelector('script[type="__bundler/page_order"]');
+    const pageOrder = pageOrderEl ? JSON.parse(pageOrderEl.textContent) : [];
+    const pageSet = new Set(pageOrder);
+    const pageTexts = {};
+
+    // ── Nested-page text protocol (parent-chain relay) ──
+    // Page bundles ship once, in the ROOT document's manifest. Every
+    // document mints the blobs for its OWN frames, obtaining page text
+    // through a strict parent-chain relay: a document only ever SENDS to
+    // its direct parent (which, for every document the publisher's own
+    // runtime minted, is another publisher document) and only ACCEPTS
+    // text from that direct parent; requests from below are honored only
+    // for the document's own child frames, and the ROOT never sends
+    // upward at all. That last rule is load-bearing: the artifact host's
+    // frame-ancestors allows claude.ai (and friends) to frame an
+    // artifact, so window.top can be a FOREIGN document — a top-addressed
+    // protocol would hand page uuids to that ancestor and accept forged
+    // "page text" from it, minting attacker HTML as an artifact-origin
+    // blob document. The chain never touches the ancestor: requests stop
+    // at the root, replies are origin-addressed per hop (never '*' when
+    // an origin exists), and both directions are origin-gated (on https
+    // a foreign sender's origin can never equal this document's; in
+    // opaque contexts — file:// — everything serializes as 'null', where
+    // an embedded EXTERNAL frame still fails the gate by carrying its
+    // own real origin, and a sandboxed child of such a frame is excluded
+    // by the own-child-frames check plus uuid unguessability). Shape is
+    // deny-by-default: one request form, one reply form, no error
+    // replies.
+    // window.origin is the SERIALIZED SECURITY origin ('null' in opaque
+    // contexts such as a sandboxed preview iframe) — location.origin is
+    // computed from the URL and stays 'https://…' even when the document
+    // is sandboxed, which would misgate every opaque chain.
+    const OWN_TARGET = /^https?:[/][/]/.test(window.origin || '')
+      ? window.origin
+      : '*';
+    function trustedOrigin(e) {
+      if (e.origin === window.origin) return true; // https chains; opaque==opaque
+      // file:// trees: Chrome serializes the file document's origin as
+      // 'file://' while the blob: documents it mints serialize as 'null',
+      // so the two legitimate shapes can never string-match — accept the
+      // pair in both directions. https origins never serialize as either,
+      // and sender identity (own child frame / direct parent) is checked
+      // separately.
+      return (
+        (e.origin === 'null' &&
+          (window.origin === 'file://' ||
+            window.location.protocol === 'file:')) ||
+        (/^file:/.test(e.origin) && window.origin === 'null')
+      );
+    }
+    // Non-empty only in the root document (nested bundles ship an empty
+    // island), so it doubles as the root marker: the root answers from
+    // local text and treats a miss as authoritative — never relaying to
+    // its (possibly foreign) parent.
+    const isPageRoot = pageOrder.length > 0;
+    const blobUrls = {};
+    const resourceBlobs = {};
+    const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    const pendingFrames = {}; // uuid -> [{el, frag}] awaiting text for own frames
+    const pendingRelays = {}; // uuid -> [childWindow] awaiting text to pass down
+    function mountPage(el, frag, text) {
+      const pageBlob = new Blob([text], { type: 'text/html' });
+      const u = URL.createObjectURL(pageBlob);
+      resourceBlobs[u] = pageBlob;
+      el.src = u + frag;
+    }
+    function deliverPage(uuid, text) {
+      const frames = pendingFrames[uuid];
+      delete pendingFrames[uuid];
+      if (frames) for (const f of frames) mountPage(f.el, f.frag, text);
+      const relays = pendingRelays[uuid];
+      delete pendingRelays[uuid];
+      if (relays) {
+        for (const cw of relays) {
+          try { cw.postMessage({ __bundler_page: uuid, __bundler_text: text }, OWN_TARGET); } catch (err) { /* gone */ }
+        }
+      }
+    }
+    function ownFrameWindows() {
+      const out = [];
+      for (const f of Array.from(document.querySelectorAll('iframe'))) {
+        try { if (f.contentWindow) out.push(f.contentWindow); } catch (err) { /* detached */ }
+      }
+      return out;
+    }
+    window.addEventListener('message', function (e) {
+      const d = e.data;
+      if (!d || typeof d !== 'object' || !e.source) return;
+      // Origin gate first; the structural checks below (own-child-frames
+      // for requests, direct-parent + solicited-uuid for replies, the
+      // root's never-relay rule) are what hold in fully opaque chains
+      // where origin strings can't discriminate — a sandboxed root's
+      // FOREIGN wrapper still fails all three even though both serialize
+      // as real-vs-'null' rather than matching.
+      if (!trustedOrigin(e)) return;
+      if (typeof d.__bundler_need === 'string' && UUID_SHAPE.test(d.__bundler_need)) {
+        // Requests are honored only for this document's own child frames.
+        if (ownFrameWindows().indexOf(e.source) < 0) return;
+        const uuid = d.__bundler_need;
+        const text = pageTexts[uuid];
+        if (typeof text === 'string') {
+          try { e.source.postMessage({ __bundler_page: uuid, __bundler_text: text }, OWN_TARGET); } catch (err) { /* gone */ }
+          return;
+        }
+        if (isPageRoot || window.parent === window) return; // authoritative miss
+        const waiting = pendingRelays[uuid];
+        if (waiting) {
+          if (waiting.indexOf(e.source) < 0) waiting.push(e.source);
+          return;
+        }
+        // Never-answered uuids would otherwise accumulate forever under a
+        // request spray; past the cap (far above any real page count) new
+        // relays are dropped rather than remembered.
+        if (Object.keys(pendingRelays).length >= 128) return;
+        pendingRelays[uuid] = [e.source];
+        window.parent.postMessage({ __bundler_need: uuid }, OWN_TARGET);
+      } else if (
+        typeof d.__bundler_page === 'string' &&
+        UUID_SHAPE.test(d.__bundler_page) &&
+        typeof d.__bundler_text === 'string'
+      ) {
+        // The shape test is load-bearing beyond tidiness: the solicited
+        // check below uses the in operator, which matches prototype keys
+        // ('__proto__', 'constructor') — an unshaped key would reach
+        // deliverPage and throw, painting the error banner.
+        // Text is accepted only from the direct parent — the document
+        // that minted this one.
+        if (e.source !== window.parent || window.parent === window) return;
+        if (!(d.__bundler_page in pendingFrames) && !(d.__bundler_page in pendingRelays)) return;
+        deliverPage(d.__bundler_page, d.__bundler_text);
+      }
+    });
+
+    const uuids = Object.keys(manifest);
+    setStatus('Unpacking ' + uuids.length + ' assets...');
+
+    await Promise.all(uuids.map(async (uuid) => {
+      const entry = manifest[uuid];
+      try {
+        const binaryStr = atob(entry.data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+        let finalBytes = bytes;
+        if (entry.compressed) {
+          if (typeof DecompressionStream !== 'undefined') {
+            const ds = new DecompressionStream('gzip');
+            const writer = ds.writable.getWriter();
+            const reader = ds.readable.getReader();
+            writer.write(bytes);
+            writer.close();
+            const chunks = [];
+            let totalLen = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLen += value.length;
+            }
+            finalBytes = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
+          } else {
+            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
+          }
+        }
+
+        if (pageSet.has(uuid)) {
+          pageTexts[uuid] = new TextDecoder().decode(finalBytes);
+          return;
+        }
+        if (FONT_MIME.test(entry.mime) && MIME_TOKEN.test(entry.mime)) {
+          // Strict artifact hosts allow font-src data: but not blob:.
+          blobUrls[uuid] = 'data:' + entry.mime + ';base64,' +
+            (entry.compressed ? toBase64(finalBytes) : entry.data);
+        } else {
+          const blob = new Blob([finalBytes], { type: entry.mime });
+          blobUrls[uuid] = URL.createObjectURL(blob);
+          resourceBlobs[blobUrls[uuid]] = blob;
+        }
+      } catch (err) {
+        console.error('Failed to decode asset ' + uuid + ':', err);
+        const blob = new Blob([], { type: entry.mime });
+        blobUrls[uuid] = URL.createObjectURL(blob);
+        resourceBlobs[blobUrls[uuid]] = blob;
+      }
+    }));
+
+    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
+    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
+    const resourceMap = {};
+    for (const entry of extResources) {
+      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+    }
+
+    // Artifact-host CSP (connect-src 'self') refuses fetch() of blob: URLs —
+    // consumers read these Blobs directly. Survives the swap like the error sink.
+    window.__resourceBlobs = resourceBlobs;
+
+    setStatus('Rendering...');
+    // Page uuids have no blob here — they ride inside about:blank#<uuid>
+    // frame markers the pass below resolves after the swap.
+    for (const uuid of uuids) {
+      if (pageSet.has(uuid)) continue;
+      template = template.split(uuid).join(blobUrls[uuid]);
+    }
+
+    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
+    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
+    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
+    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
+
+    const resourceScript = '<script>window.__resources = ' +
+      JSON.stringify(resourceMap).replace(/<\//g, '<\\/') +
+      ';</' + 'script>';
+    // Inject after <head> so the DOCTYPE stays first; prepending the script
+    // would push the parser into quirks mode. DOMParser always emits a <head>
+    // (synthesizing one if the source HTML omitted it) but may carry
+    // attributes through, so match the full opening tag. slice() rather than
+    // replace() keeps us clear of $-pattern substitution in resourceScript.
+    const headOpen = template.match(/<head[^>]*>/i);
+    if (headOpen) {
+      const i = headOpen.index + headOpen[0].length;
+      template = template.slice(0, i) + resourceScript + template.slice(i);
+    }
+
+    // Parse the template and swap the root element. Scripts inserted via
+    // DOMParser/replaceWith are inert per spec — re-create each with
+    // createElement so they execute, awaiting onload for src scripts to
+    // preserve ordering (React before ReactDOM before Babel before text/babel).
+    const doc = new DOMParser().parseFromString(template, 'text/html');
+    document.documentElement.replaceWith(doc.documentElement);
+
+    // Resolve page-frame markers: mint this document's own blob for each
+    // framed page — from local text when this is the root, otherwise by
+    // asking the direct parent over the relay protocol above. An
+    // unanswered request leaves the frame on about:blank, the same
+    // degraded state as a refused embed.
+    {
+      const MARKER = /^about:blank#([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(#.*)?$/;
+      const needed = [];
+      for (const el of Array.from(document.querySelectorAll('iframe'))) {
+        const m = MARKER.exec(el.getAttribute('src') || '');
+        if (!m) continue;
+        const text = pageTexts[m[1]];
+        if (typeof text === 'string') {
+          mountPage(el, m[2] || '', text);
+        } else if (window.parent !== window && !isPageRoot) {
+          const had = pendingFrames[m[1]];
+          (pendingFrames[m[1]] = had || []).push({ el: el, frag: m[2] || '' });
+          if (!had) needed.push(m[1]);
+        }
+      }
+      for (const uuid of needed) {
+        window.parent.postMessage({ __bundler_need: uuid }, OWN_TARGET);
+      }
+    }
+
+    const dead = Array.from(document.scripts);
+    for (const old of dead) {
+      const s = document.createElement('script');
+      for (const a of old.attributes) s.setAttribute(a.name, a.value);
+      s.textContent = old.textContent;
+      // text/babel scripts with a src: read and inline. transformScriptTags
+      // does XHR against the src, but blob:null/ from a file:// origin is
+      // silently dropped. Inlining makes it a plain inline babel script,
+      // which transformScriptTags handles unconditionally.
+      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
+        const pre = resourceBlobs[s.src.split('#')[0]];
+        s.textContent = pre ? await pre.text() : await (await fetch(s.src)).text();
+        s.removeAttribute('src');
+      }
+      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
+      old.replaceWith(s);
+      if (p) await p;
+    }
+    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
+    // which fired before we swapped the document. Trigger manually if present.
+    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
+      window.Babel.transformScriptTags();
+    }
+  } catch (err) {
+    setStatus('Error unpacking: ' + err.message);
+    console.error('Bundle unpack error:', err);
+  }
+});
+
+  </script>
+
+  <script type="__bundler/manifest">
+{}
+  </script>
+
+  <script type="__bundler/ext_resources">
+[]
+  </script>
+
+  <script type="__bundler/page_order">
+[]
+  </script>
+
+  <script type="__bundler/template">
+"<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta charset=\"utf-8\"><link href=\"https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@100..800&display=swap\" rel=\"stylesheet\">\n<title>MetraSlate — the comb builds, the S threads<\u002Ftitle>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n<style>/* vietnamese */\n\n/* latin-ext */\n\n/* latin */\n\n/* cyrillic-ext */\n\n/* cyrillic */\n\n/* greek */\n\n/* vietnamese */\n\n/* latin-ext */\n\n/* latin */\n\n/* cyrillic-ext */\n\n/* cyrillic */\n\n/* greek */\n\n/* vietnamese */\n\n/* latin-ext */\n\n/* latin */\n\n<\u002Fstyle>\n<style>\n  html,body { margin:0; padding:0; background:#000; overflow:hidden; height:100%; }\n  body { font-family:'JetBrains Mono',monospace; }\n  #stage { position:absolute; left:0; top:0; width:1920px; height:1080px; background:#000; transform-origin:top left; overflow:hidden; }\n  .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:48px; }\n  #word { font-family:'Archivo',sans-serif; font-size:132px; font-weight:800; font-stretch:125%; letter-spacing:-.02em; color:#fff; opacity:0; }\n\n  #ui { position:fixed; right:24px; bottom:24px; display:flex; flex-direction:column; align-items:flex-end; gap:10px; z-index:9; }\n  .btn { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.24em; color:#3a3d41; text-transform:uppercase; background:#000; border:1px solid #1c1e21; padding:8px 13px; cursor:pointer; }\n  .btn:hover { color:#8b9096; border-color:#2e3135; }\n  #panel { display:none; width:276px; max-height:78vh; overflow:auto; background:#000; border:1px solid #1c1e21; padding:18px; flex-direction:column; gap:14px; }\n  #panel.open { display:flex; }\n  .hdr { font-size:10px; letter-spacing:.24em; color:#3a3d41; text-transform:uppercase; border-top:1px solid #1c1e21; padding-top:13px; }\n  .hdr:first-child { border-top:none; padding-top:0; }\n  .row { display:flex; flex-direction:column; gap:7px; }\n  .lab { display:flex; justify-content:space-between; font-size:10px; letter-spacing:.18em; color:#6f7378; text-transform:uppercase; }\n  .lab b { color:#c9ccd1; font-weight:400; }\n  input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:1px; background:#2e3135; outline:none; }\n  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:11px; height:11px; background:#e9ebee; cursor:pointer; border-radius:50%; }\n  .seg { display:flex; gap:5px; }\n  .seg button { flex:1; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; color:#4e5257; background:#000; border:1px solid #1c1e21; padding:6px 0; cursor:pointer; text-transform:uppercase; }\n  .seg button.on { color:#0b0b0c; background:#c9ccd1; border-color:#c9ccd1; }\n<\u002Fstyle>\n<\u002Fhead><body>\n\n\n<div id=\"stage\">\n  <div class=\"center\">\n    <div id=\"markwrap\" style=\"position:relative; width:700px; height:700px;\">\n      <svg id=\"mark\" viewBox=\"0 0 734 734\" width=\"700\" height=\"700\" style=\"display:block;\">\n        <defs>\n          <path id=\"rpen\" fill=\"none\"><\u002Fpath>\n        <\u002Fdefs>\n        <g id=\"cells\"><\u002Fg>\n      <\u002Fsvg>\n      <canvas id=\"ink\" width=\"734\" height=\"734\" style=\"position:absolute; left:0; top:0; width:700px; height:700px;\"><\u002Fcanvas>\n    <\u002Fdiv>\n    <div id=\"word\">METRASLATE<\u002Fdiv>\n  <\u002Fdiv>\n<\u002Fdiv>\n\n<div id=\"ui\">\n  <div id=\"panel\">\n    <div class=\"hdr\">Timing<\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Snap pace<\u002Fspan><b id=\"v-pace\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-pace\" min=\"60\" max=\"240\" step=\"10\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Draw<\u002Fspan><b id=\"v-draw\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-draw\" min=\"0.8\" max=\"3.4\" step=\"0.1\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Hold<\u002Fspan><b id=\"v-hold\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-hold\" min=\"1\" max=\"6\" step=\"0.2\"><\u002Fdiv>\n    <div class=\"hdr\">Mark<\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Wordmark delay<\u002Fspan><b id=\"v-wdel\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-wdel\" min=\"0\" max=\"2\" step=\"0.05\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Wordmark fade<\u002Fspan><b id=\"v-wfade\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-wfade\" min=\"0.1\" max=\"2\" step=\"0.05\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Wordmark<\u002Fspan><\u002Fdiv><div class=\"seg\" id=\"t-cap\"><button data-v=\"1\">On<\u002Fbutton><button data-v=\"0\">Off<\u002Fbutton><\u002Fdiv><\u002Fdiv>\n    <div class=\"hdr\">Sound<\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Snap voice<\u002Fspan><b id=\"v-sn\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-sn\" min=\"1\" max=\"12\" step=\"1\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Level-up chime<\u002Fspan><b id=\"v-cv\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-cv\" min=\"1\" max=\"10\" step=\"1\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Pen voice<\u002Fspan><b id=\"v-sv\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-sv\" min=\"1\" max=\"12\" step=\"1\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Reverb<\u002Fspan><b id=\"v-rvk\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-rvk\" min=\"0\" max=\"1.5\" step=\"0.05\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Echo<\u002Fspan><b id=\"v-eck\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-eck\" min=\"0\" max=\"1.5\" step=\"0.05\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Delay time<\u002Fspan><b id=\"v-dtime\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-dtime\" min=\"0.06\" max=\"0.45\" step=\"0.01\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"lab\"><span>Volume<\u002Fspan><b id=\"v-vol\"><\u002Fb><\u002Fdiv><input type=\"range\" id=\"t-vol\" min=\"0\" max=\"1.5\" step=\"0.05\"><\u002Fdiv>\n    <div class=\"row\"><div class=\"seg\"><button id=\"audition\">hear chime<\u002Fbutton><\u002Fdiv><\u002Fdiv>\n  <\u002Fdiv>\n  <div style=\"display:flex; gap:8px;\">\n    <button class=\"btn\" id=\"snd\">sound off<\u002Fbutton>\n    <button class=\"btn\" id=\"tw\">tweaks<\u002Fbutton>\n  <\u002Fdiv>\n<\u002Fdiv>\n\n<script>\n(function(){\n  var stage=document.getElementById('stage');\n  function fit(){ var s=Math.min(innerWidth/1920, innerHeight/1080);\n    stage.style.transform='scale('+s+')'; stage.style.left=((innerWidth-1920*s)/2)+'px'; stage.style.top=((innerHeight-1080*s)/2)+'px'; }\n  addEventListener('resize', fit); fit();\n\n  /* cell centres detected from the production mark (734-space), snap order:\n     bottom-left first, up the left leg, across the bridge, down the right leg */\n  var CELLS=[[146,495],[146,366.5],[146,238],[256.5,302],[367,366.5],[477.5,302],[588,238],[588,366.5],[588,495]];\n  var HR=71, HQ=Math.sqrt(3)*HR/2;\n  /* the S centreline, traced from the hand-drawn ribbon itself (583-space) */\n  var RIBBON_D=\"M 490.0,143.0 L 495.1,138.9 L 499.6,134.4 L 504.1,129.5 L 507.8,123.5 L 510.4,117.5 L 511.1,111.5 L 512.0,105.5 L 511.1,99.5 L 509.6,93.5 L 506.4,87.6 L 501.9,82.9 L 496.5,79.2 L 491.5,75.8 L 485.5,72.8 L 479.5,69.9 L 473.5,67.8 L 467.5,65.7 L 461.5,63.4 L 455.5,61.9 L 449.5,60.4 L 443.5,58.9 L 437.5,57.4 L 431.5,55.9 L 425.5,54.4 L 419.5,53.8 L 413.5,53.0 L 407.5,51.9 L 401.5,51.0 L 395.5,50.1 L 389.5,49.4 L 383.5,49.0 L 377.5,48.4 L 371.5,48.0 L 365.5,47.4 L 359.5,47.0 L 353.5,46.4 L 347.5,46.0 L 341.5,46.0 L 335.5,46.0 L 329.5,46.0 L 323.5,45.8 L 317.5,45.0 L 311.5,45.0 L 305.5,45.0 L 299.5,45.0 L 293.5,45.6 L 287.5,46.0 L 281.5,46.0 L 275.5,46.0 L 269.5,46.0 L 263.5,46.0 L 257.5,46.0 L 251.5,46.9 L 245.5,47.0 L 239.5,47.9 L 233.5,48.0 L 227.5,48.9 L 221.5,49.6 L 215.5,50.0 L 209.5,50.0 L 203.5,50.9 L 197.5,51.6 L 191.5,52.9 L 185.5,53.6 L 179.5,54.2 L 173.5,55.6 L 167.5,56.2 L 161.5,57.6 L 155.5,58.2 L 149.5,59.6 L 143.5,61.1 L 137.5,62.6 L 131.5,64.1 L 125.5,65.6 L 119.5,67.1 L 113.5,68.6 L 107.5,70.3 L 101.5,72.6 L 95.5,75.1 L 89.5,77.3 L 83.5,79.3 L 77.5,82.9 L 71.5,86.3 L 65.5,89.9 L 60.5,93.6 L 55.7,97.4 L 51.1,102.5 L 47.9,108.5 L 46.4,114.5 L 45.8,120.5 L 45.6,126.5 L 47.1,132.5 L 48.6,138.5 L 51.4,144.3 L 55.9,149.5 L 60.4,154.4 L 64.9,158.9 L 70.5,163.4 L 75.5,166.8 L 81.5,169.8 L 86.5,173.2 L 92.5,176.3 L 97.5,179.6 L 103.5,182.8 L 109.5,186.6 L 115.5,189.8 L 121.5,192.8 L 126.5,196.2 L 132.5,199.3 L 137.5,202.6 L 143.5,205.8 L 149.5,209.6 L 155.5,212.8 L 161.5,216.6 L 167.5,219.8 L 173.5,223.6 L 179.5,226.8 L 185.5,229.8 L 190.5,233.2 L 196.5,236.3 L 201.5,239.6 L 207.5,242.8 L 213.5,246.6 L 219.5,249.8 L 225.5,253.6 L 231.5,256.8 L 237.5,259.8 L 242.5,263.2 L 248.5,266.3 L 253.5,269.6 L 259.5,272.8 L 265.5,276.6 L 271.5,279.8 L 277.5,283.6 L 283.5,286.8 L 289.5,289.8 L 294.5,293.2 L 300.5,296.3 L 305.5,299.6 L 311.5,302.8 L 317.5,306.6 L 323.5,309.8 L 329.5,313.6 L 335.5,316.8 L 341.5,320.6 L 347.5,323.8 L 353.5,326.8 L 358.5,330.2 L 364.5,333.3 L 369.5,336.6 L 375.5,339.8 L 381.5,343.6 L 387.5,346.8 L 393.5,350.6 L 399.5,353.8 L 405.5,356.8 L 410.5,360.2 L 416.5,363.3 L 421.5,366.6 L 427.5,369.8 L 433.5,373.6 L 439.5,376.8 L 445.5,380.6 L 451.5,383.8 L 457.5,387.6 L 463.5,390.8 L 469.5,393.8 L 474.5,397.2 L 480.5,400.3 L 485.5,403.6 L 491.5,406.8 L 497.5,410.6 L 503.5,413.8 L 509.5,417.6 L 515.1,421.1 L 519.6,425.6 L 524.1,430.1 L 528.6,435.5 L 532.2,440.5 L 534.6,446.5 L 536.1,452.5 L 537.0,458.5 L 536.8,464.5 L 535.4,470.5 L 533.7,476.5 L 530.1,481.9 L 525.6,486.4 L 520.5,490.9 L 514.5,494.4 L 509.5,497.8 L 503.5,500.8 L 497.5,503.8 L 491.5,506.7 L 485.5,508.8 L 479.5,510.9 L 473.5,512.4 L 467.5,513.9 L 461.5,516.4 L 455.5,517.9 L 449.5,519.4 L 443.5,520.9 L 437.5,522.0 L 431.5,522.9 L 425.5,524.4 L 419.5,525.8 L 413.5,526.4 L 407.5,527.9 L 401.5,529.0 L 395.5,529.8 L 389.5,530.0 L 383.5,530.8 L 377.5,531.4 L 371.5,532.1 L 365.5,533.0 L 359.5,533.8 L 353.5,534.0 L 347.5,534.8 L 341.5,535.0 L 335.5,535.0 L 329.5,535.4 L 323.5,536.0 L 317.5,536.4 L 311.5,537.0 L 305.5,537.0 L 299.5,537.0 L 293.5,537.0 L 287.5,537.0 L 281.5,537.0 L 275.5,537.0 L 269.5,537.0 L 263.5,537.0 L 257.5,537.0 L 251.5,537.0 L 245.5,536.6 L 239.5,536.0 L 233.5,536.0 L 227.5,535.9 L 221.5,535.0 L 215.5,535.0 L 209.5,534.6 L 203.5,533.9 L 197.5,533.0 L 191.5,532.2 L 185.5,532.0 L 179.5,531.2 L 173.5,530.6 L 167.5,529.9 L 161.5,528.6 L 155.5,527.1 L 149.5,525.6 L 143.5,524.9 L 137.5,523.6 L 131.5,522.1 L 125.5,520.3 L 119.5,518.1 L 113.5,516.6 L 107.5,515.1 L 101.5,512.3 L 95.5,509.3 L 89.5,506.3 L 84.3,502.4 L 78.9,497.9 L 74.5,493.3 L 72.6,487.5 L 71.1,481.5 L 70.4,475.5 L 71.9,469.5 L 73.4,463.5 L 75.8,457.5 L 80.1,451.9 L 84.6,447.4 L 89.1,442.9 L 93.5,438.6 L 95.0,438.0\";\n\n  var cellsG=document.getElementById('cells'), rpen=document.getElementById('rpen'),\n      word=document.getElementById('word'), markwrap=document.getElementById('markwrap'),\n      ink=document.getElementById('ink'), ictx=ink.getContext('2d');\n  var RIB=new Image(); RIB.src='../assets/metraslate-ribbon-white.png';\n  var cellEls=[], penLen=1, RPTS=[];\n  var SNAP_DUR=190;\n\n  var D={pace:120, draw:1.7, hold:3.0, cap:1, wdel:0.12, wfade:0.35, sn:1, cv:2, sv:1, rvk:1, eck:1, dtime:0.2, vol:0.9};\n  var K='ms-build-2', S=Object.assign({}, D);\n  try { var st=JSON.parse(localStorage.getItem(K)||'{}'); Object.keys(D).forEach(function(k){ if(k in st) S[k]=st[k]; }); } catch(e){}\n  function save(){ try{ localStorage.setItem(K, JSON.stringify(S)); }catch(e){} }\n\n  function build(){\n    var svgns='http://www.w3.org/2000/svg';\n    CELLS.forEach(function(c){\n      var p=document.createElementNS(svgns,'polygon');\n      var cx=c[0],cy=c[1];\n      var pts=[[cx-HR,cy],[cx-HR/2,cy-HQ],[cx+HR/2,cy-HQ],[cx+HR,cy],[cx+HR/2,cy+HQ],[cx-HR/2,cy+HQ]];\n      p.setAttribute('points',pts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1)}).join(' '));\n      p.setAttribute('fill','#836cf3'); p.setAttribute('stroke','#f8f8f8');\n      p.setAttribute('stroke-width','4'); p.setAttribute('stroke-linejoin','round');\n      cellsG.appendChild(p); cellEls.push(p);\n    });\n    rpen.setAttribute('d',RIBBON_D);\n    penLen=rpen.getTotalLength();\n    RPTS=[];\n    for (var L=0;L<=penLen;L+=4){ var q=rpen.getPointAtLength(L); RPTS.push([q.x,q.y]); }\n    var qe=rpen.getPointAtLength(penLen); RPTS.push([qe.x,qe.y]);\n  }\n  var lastInkP=-1;\n  function drawInk(p){\n    p=Math.max(0,Math.min(1,p));\n    if (p===lastInkP) return;\n    ictx.clearRect(0,0,734,734);\n    if (p<=0){ lastInkP=p; return; }\n    if (!RIB.complete){ lastInkP=-1; return; }\n    var n=Math.max(2,Math.round(p*(RPTS.length-1))+1);\n    ictx.save();\n    ictx.translate(76,79);\n    ictx.strokeStyle='#fff'; ictx.lineWidth=50; ictx.lineCap='round'; ictx.lineJoin='round';\n    ictx.beginPath(); ictx.moveTo(RPTS[0][0],RPTS[0][1]);\n    for (var k=1;k<n&&k<RPTS.length;k++) ictx.lineTo(RPTS[k][0],RPTS[k][1]);\n    ictx.stroke();\n    ictx.restore();\n    ictx.globalCompositeOperation='source-in';\n    ictx.drawImage(RIB,76,79,583,583);\n    ictx.globalCompositeOperation='source-over';\n    lastInkP=p;\n  }\n\n  /* ---------- sound ---------- */\n  var SCRIB=[\n    {bp:3400,q:0.8, lfo:41,dep:0.50,lp:480,sg:0.085,bg:0.030},\n    {bp:2600,q:0.6, lfo:33,dep:0.40,lp:380,sg:0.075,bg:0.048},\n    {bp:4600,q:1.4, lfo:52,dep:0.62,lp:560,sg:0.070,bg:0.018},\n    {bp:3000,q:0.5, lfo:24,dep:0.30,lp:300,sg:0.090,bg:0.055},\n    {bp:5200,q:1.8, lfo:64,dep:0.72,lp:640,sg:0.060,bg:0.012},\n    {bp:2200,q:0.9, lfo:38,dep:0.45,lp:340,sg:0.082,bg:0.052},\n    {bp:3800,q:1.1, lfo:47,dep:0.58,lp:520,sg:0.078,bg:0.026},\n    {bp:2900,q:2.2, lfo:29,dep:0.66,lp:420,sg:0.088,bg:0.034},\n    {bp:4200,q:0.7, lfo:56,dep:0.36,lp:600,sg:0.066,bg:0.022},\n    {bp:3200,q:1.6, lfo:19,dep:0.74,lp:360,sg:0.094,bg:0.044},\n    {bp:4900,q:1.0, lfo:44,dep:0.48,lp:700,sg:0.064,bg:0.014},\n    {bp:2400,q:1.3, lfo:36,dep:0.55,lp:320,sg:0.086,bg:0.060}\n  ];\n  var A=null,on=false,noiseBuf=null,scratchLvl=null,bodyLvl=null,scratchBP=null,bodyLP=null,lfo=null,lfoAmt=null,master=null;\n  function initAudio(){\n    A=new (window.AudioContext||window.webkitAudioContext)();\n    var n=Math.floor(A.sampleRate*3), b=A.createBuffer(1,n,A.sampleRate), d=b.getChannelData(0), b0=0,b1=0,b2=0;\n    for (var i=0;i<n;i++){ var w=Math.random()*2-1;\n      b0=0.99765*b0+w*0.0990460; b1=0.96300*b1+w*0.2965164; b2=0.57000*b2+w*1.0526913;\n      d[i]=(b0+b1+b2+w*0.1848)*0.22; }\n    noiseBuf=b;\n    master=A.createGain(); master.gain.value=S.vol; master.connect(A.destination);\n    var src=A.createBufferSource(); src.buffer=b; src.loop=true;\n    scratchBP=A.createBiquadFilter(); scratchBP.type='bandpass';\n    var am=A.createGain(); am.gain.value=0.45;\n    lfo=A.createOscillator(); lfo.type='sine'; lfoAmt=A.createGain();\n    lfo.connect(lfoAmt); lfoAmt.connect(am.gain); lfo.start();\n    scratchLvl=A.createGain(); scratchLvl.gain.value=0;\n    bodyLP=A.createBiquadFilter(); bodyLP.type='lowpass'; bodyLP.Q.value=0.7;\n    bodyLvl=A.createGain(); bodyLvl.gain.value=0;\n    src.connect(scratchBP); scratchBP.connect(am); am.connect(scratchLvl); scratchLvl.connect(master);\n    src.connect(bodyLP); bodyLP.connect(bodyLvl); bodyLvl.connect(master);\n    src.start(); applyVoice();\n  }\n  function applyVoice(){\n    if(!A) return;\n    var v=SCRIB[S.sv-1];\n    scratchBP.frequency.value=v.bp; scratchBP.Q.value=v.q;\n    lfo.frequency.value=v.lfo; lfoAmt.gain.value=v.dep;\n    bodyLP.frequency.value=v.lp; master.gain.value=S.vol;\n  }\n  function penAudio(x){\n    if(!on||!A||!scratchLvl) return;\n    var v=SCRIB[S.sv-1]; x=Math.max(0,Math.min(1,x));\n    scratchLvl.gain.setTargetAtTime(v.sg*x*x, A.currentTime, 0.014);\n    bodyLvl.gain.setTargetAtTime(v.bg*x, A.currentTime, 0.02);\n    scratchBP.frequency.setTargetAtTime(v.bp*(0.78+0.34*x), A.currentTime, 0.04);\n  }\n  var SNAPV=[{name:'THUNK'},{name:'CLICK'},{name:'SNAP'},{name:'TICK'},{name:'POP'},{name:'KEY'},{name:'GLASS'},{name:'DEEP'},{name:'RIM'},{name:'BUBBLE'},{name:'STONE'},{name:'LATCH'}];\n  function snapSnd(i){\n    if(!on||!A) return;\n    var t=A.currentTime, kind=(SNAPV[Math.min(S.sn,SNAPV.length)-1]||SNAPV[0]).name;\n    function tone(f0,f1,dur,vol,type){var o=A.createOscillator();o.type=type||'sine';\n      o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);\n      var g=A.createGain();g.gain.setValueAtTime(vol,t);\n      g.gain.exponentialRampToValueAtTime(0.0008,t+dur);\n      o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03)}\n    function noise(f,q,dur,vol,type){var s=A.createBufferSource();s.buffer=noiseBuf;s.loop=true;\n      var fl=A.createBiquadFilter();fl.type=type||'bandpass';fl.frequency.value=f;fl.Q.value=q;\n      var g=A.createGain();g.gain.setValueAtTime(vol,t);\n      g.gain.exponentialRampToValueAtTime(0.0008,t+dur);\n      s.connect(fl);fl.connect(g);g.connect(master);s.start(t);s.stop(t+dur+0.02)}\n    if(kind==='THUNK'){var f=92+i*9;tone(f*1.7,f,0.16,0.22);noise(2100,5,0.05,0.05)}\n    else if(kind==='CLICK'){noise(5200+i*180,8,0.018,0.16,'highpass');tone(3000+i*90,2400,0.02,0.05,'square')}\n    else if(kind==='SNAP'){noise(1750+i*60,3,0.03,0.2);tone(260,120,0.045,0.14)}\n    else if(kind==='TICK'){tone(1150+i*45,880,0.022,0.16);noise(6800,2,0.012,0.07,'highpass')}\n    else if(kind==='POP'){tone(460+i*22,170,0.06,0.2);noise(900,1.5,0.02,0.05)}\n    else if(kind==='KEY'){noise(2400,4,0.012,0.14);noise(6200,6,0.01,0.1);tone(150,90,0.03,0.08)}\n    else if(kind==='GLASS'){tone(2600+i*70,2300,0.05,0.12);noise(7800,3,0.014,0.08,'highpass')}\n    else if(kind==='DEEP'){tone(120,52,0.09,0.3);noise(700,1.2,0.02,0.06)}\n    else if(kind==='RIM'){noise(3400,1.2,0.022,0.22,'highpass');tone(920+i*30,780,0.025,0.1,'triangle')}\n    else if(kind==='BUBBLE'){tone(240+i*18,560+i*30,0.05,0.16)}\n    else if(kind==='STONE'){noise(420,1,0.05,0.22);tone(150+i*6,84,0.07,0.2)}\n    else if(kind==='LATCH'){noise(1500,2,0.018,0.16);(function(){var t2=t+0.045;\n      var o=A.createOscillator();o.type='square';o.frequency.setValueAtTime(3200,t2);\n      var g=A.createGain();g.gain.setValueAtTime(0.0001,t2);\n      g.gain.exponentialRampToValueAtTime(0.09,t2+0.002);\n      g.gain.exponentialRampToValueAtTime(0.0008,t2+0.02);\n      o.connect(g);g.connect(master);o.start(t2);o.stop(t2+0.04)})()}\n    else{tone(340,170,0.02,0.1);noise(5600,5,0.012,0.1,'highpass')}\n  }\n  var LVLUP=[\n    {name:'BELL',    root:784, seq:[0,5,12,17],        w:['sine','sine'],        det:4, step:0.085,dur:0.160,lp:[2400,9000],echo:0.22,spark:3,fm:1},\n    {name:'PRISM',   synth:'future', root:880, seq:[0,7,12,19,24],      step:0.082,dur:0.45,att:0.006,dec:0.32,decL:0.95,harm:[[1,1],[2,0.35],[3,0.15]], panW:0.50,rv:0.40,lp:[2600,11000],echo:0.22},\n    {name:'STARDUST',synth:'future', root:1175,seq:[0,4,9,12,16,21],    step:0.048,dur:0.30,att:0.003,dec:0.18,decL:0.7,harm:[[1,1],[3,0.08]],          panW:0.60,rv:0.70,lp:[3000,12000],echo:0.25},\n    {name:'LUMEN',   synth:'future', root:659, seq:[0,7,12,16],         step:0.130,dur:0.50,att:0.020,dec:0.55,decL:1.2,harm:[[1,1],[2,0.30],[4,0.06]], panW:0.35,rv:0.60,lp:[2000,10000],echo:0.16},\n    {name:'CASCADE', synth:'future', root:1319,seq:[0,2,4,7,9,12,16,19],step:0.042,dur:0.25,att:0.003,dec:0.12,decL:0.6,harm:[[1,1],[2,0.20]],          panW:0.65,rv:0.65,lp:[3200,12000],echo:0.28},\n    {name:'IRIS',    synth:'future', root:988, seq:[0,4,9],             step:0.085,dur:0.40,att:0.008,dec:0.30,decL:1.0,harm:[[1,1],[2,0.28],[3,0.10]], panW:0.45,chord9:1,rv:0.55,lp:[2400,11000],echo:0.20},\n    {name:'COMET',   synth:'future', root:1047,seq:[0,5,10,16,22],      step:0.060,dur:0.35,att:0.004,dec:0.22,decL:0.8,harm:[[0.5,0.18],[1,1],[3,0.10]],panW:0.55,rv:0.70,lp:[2200,11000],echo:0.26},\n    {name:'GUITAR',  synth:'pluckstring', root:220, seq:[0,5,9,12,17], step:0.075,dur:0.8, rv:0.35,lp:[1400,8000], echo:0.18},\n    {name:'SUBDROP', synth:'wob',         root:82,  seq:[12,5,0],      step:0.140,dur:0.28,rv:0.20,lp:[500,3200],  echo:0.12},\n    {name:'LASER',   synth:'zap',         root:523, seq:[0,7,12,19,24],step:0.055,dur:0.3, rv:0.45,lp:[1800,10000],echo:0.30}\n  ];\n  var VERB=null;\n  function getVerb(){\n    if(VERB||!A) return VERB;\n    var len=Math.floor(A.sampleRate*1.8), ir=A.createBuffer(2,len,A.sampleRate);\n    for(var ch=0;ch<2;ch++){var d=ir.getChannelData(ch);\n      for(var i=0;i<len;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.8)*0.5;}}\n    VERB=A.createConvolver(); VERB.buffer=ir; VERB.connect(master);\n    return VERB;}\n  function jingle(amp){\n    if(!on||!A) return;\n    var v=LVLUP[Math.min(S.cv,LVLUP.length)-1]||LVLUP[0], t0a=A.currentTime;\n    var total=v.seq.length*v.step+(v.dur||0.1)*3+1;\n    var bus=A.createGain(); bus.gain.value=1;\n    var lp=A.createBiquadFilter(); lp.type='lowpass'; lp.Q.value=0.8;\n    lp.frequency.setValueAtTime(v.lp[0],t0a);\n    lp.frequency.exponentialRampToValueAtTime(v.lp[1],t0a+Math.min(total*0.8,1.2));\n    var comp=A.createDynamicsCompressor();\n    comp.threshold.value=-18; comp.knee.value=12; comp.ratio.value=5;\n    comp.attack.value=0.002; comp.release.value=0.12;\n    bus.connect(lp); lp.connect(comp);\n    var dry=A.createGain(); dry.gain.value=0.9; comp.connect(dry); dry.connect(master);\n    var dl=A.createDelay(0.6); dl.delayTime.value=Math.min(0.5,S.dtime||0.2);\n    var fb=A.createGain(); fb.gain.setValueAtTime(0.3,t0a);\n    fb.gain.setTargetAtTime(0.0001,t0a+total+0.9,0.1);\n    var wet=A.createGain(); wet.gain.value=v.echo*(S.eck!=null?S.eck:1)*Math.min(1,amp);\n    comp.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(master);\n    var vb=getVerb();\n    if(vb){ var send=A.createGain(); send.gain.value=(v.rv||0.2)*(S.rvk!=null?S.rvk:1)*Math.min(1,amp);\n      comp.connect(send); send.connect(vb); }\n    function env(at,peak,attack,decay){\n      var g=A.createGain(); g.gain.setValueAtTime(0.0001,at);\n      g.gain.exponentialRampToValueAtTime(Math.max(0.0002,peak),at+attack);\n      g.gain.setTargetAtTime(0.0001,at+attack+0.004,decay);\n      return g;}\n    function note(f,at,dur,vol,waves,detC,vib){\n      waves.forEach(function(w,wi){\n        var o=A.createOscillator(); o.type=w;\n        o.frequency.setValueAtTime(f,at);\n        o.detune.setValueAtTime(wi?-detC:detC,at);\n        if (vib){ var lf=A.createOscillator(); lf.frequency.value=5.5;\n          var lg=A.createGain(); lg.gain.value=8; lf.connect(lg); lg.connect(o.detune);\n          lf.start(at); lf.stop(at+dur+0.05); }\n        var g=A.createGain();\n        g.gain.setValueAtTime(0.0001,at);\n        g.gain.exponentialRampToValueAtTime(vol/waves.length,at+0.006);\n        g.gain.setTargetAtTime(0.0001,at+dur*0.35,dur*0.28);\n        o.connect(g); g.connect(bus); o.start(at); o.stop(at+dur+0.4);\n      });\n    }\n    if (v.pad){\n      [0,7,14].forEach(function(st2){\n        var o=A.createOscillator(); o.type='triangle';\n        o.frequency.setValueAtTime(v.root*Math.pow(2,st2/12)/2,t0a);\n        var g=A.createGain(); g.gain.setValueAtTime(0.0001,t0a);\n        g.gain.exponentialRampToValueAtTime(0.030*amp,t0a+total*0.35);\n        g.gain.setTargetAtTime(0.0001,t0a+total*0.5,total*0.22);\n        o.connect(g); g.connect(bus); o.start(t0a); o.stop(t0a+total+0.5);\n      });\n    }\n    v.seq.forEach(function(st,i){\n      var f=v.root*Math.pow(2,st/12), at=t0a+i*v.step, last=i===v.seq.length-1;\n      var vol=(last?0.16:0.12)*amp;\n      if (!v.synth){\n        var dur=last?v.dur*3.4:v.dur*1.2;\n        note(f,at,dur,vol,v.w,v.det,last);\n        if (v.fm) note(f*(v.fmx||2.756),at,dur*0.55,vol*0.2,['sine'],0,false);\n        if (last){\n          note(f*2,at+0.012,dur*0.9,vol*0.34*(v.spark/2),['sine'],3,true);\n          note(f*3,at+0.030,dur*0.7,vol*0.16*(v.spark/2),['sine'],5,true);\n          if (v.chord){\n            note(f*Math.pow(2,4/12),at,dur,vol*0.5,v.w,v.det,true);\n            note(f*Math.pow(2,7/12),at,dur,vol*0.5,v.w,v.det,true);\n          }\n        }\n      } else if (v.synth==='pluckstring'){\n        /* Karplus-Strong: noise burst circulating in a tuned, damped delay loop */\n        var per=1/f;\n        var ksn=A.createBufferSource(); ksn.buffer=noiseBuf; ksn.loop=true;\n        var ksb=A.createGain(); ksb.gain.setValueAtTime(0.6,at);\n        ksb.gain.setTargetAtTime(0.0001,at+per*2,per);\n        var ksd=A.createDelay(0.05); ksd.delayTime.value=per;\n        var ksf=A.createGain(); ksf.gain.setValueAtTime(0.93,at);\n        ksf.gain.setTargetAtTime(0.0001,at+(last?1.4:0.9),0.12);\n        var ksl=A.createBiquadFilter(); ksl.type='lowpass'; ksl.frequency.value=4200;\n        var kso=A.createGain(); kso.gain.setValueAtTime(vol*2.2,at);\n        kso.gain.setTargetAtTime(0.0001,at+(last?1.5:1.0),0.15);\n        ksn.connect(ksb); ksb.connect(ksd);\n        ksd.connect(ksl); ksl.connect(ksf); ksf.connect(ksd);\n        ksd.connect(kso); kso.connect(bus);\n        ksn.start(at); ksn.stop(at+per*3+0.01);\n      } else if (v.synth==='wob'){\n        var wo1=A.createOscillator(); wo1.type='sawtooth';\n        wo1.frequency.setValueAtTime(f*1.4,at); wo1.frequency.exponentialRampToValueAtTime(f,at+0.06);\n        var wo2=A.createOscillator(); wo2.type='square';\n        wo2.frequency.setValueAtTime(f*2.8,at); wo2.frequency.exponentialRampToValueAtTime(f*2.02,at+0.06);\n        var wff=A.createBiquadFilter(); wff.type='lowpass'; wff.Q.value=9;\n        wff.frequency.setValueAtTime(last?1000:750,at);\n        var wlf=A.createOscillator(); wlf.type='sine'; wlf.frequency.setValueAtTime(last?6.5:9,at);\n        var wlg=A.createGain(); wlg.gain.setValueAtTime(last?800:450,at);\n        wlf.connect(wlg); wlg.connect(wff.frequency);\n        var wenv=env(at,vol*1.6,0.005,(last?v.dur*2.6:v.dur)*0.6);\n        wo1.connect(wff); wo2.connect(wff); wff.connect(wenv); wenv.connect(bus);\n        var wstop=at+(last?v.dur*3.5:v.dur*1.6);\n        wo1.start(at); wo2.start(at); wlf.start(at);\n        wo1.stop(wstop); wo2.stop(wstop); wlf.stop(wstop);\n      } else if (v.synth==='zap'){\n        var zo=A.createOscillator(); zo.type='square';\n        zo.frequency.setValueAtTime(f*3,at);\n        zo.frequency.exponentialRampToValueAtTime(f,at+0.06);\n        var zo2=A.createOscillator(); zo2.type='sine';\n        zo2.frequency.setValueAtTime(f*6,at);\n        zo2.frequency.exponentialRampToValueAtTime(f*1.5,at+0.05);\n        var zg=env(at,vol*0.9,0.002,last?0.4:0.08);\n        var zg2=env(at,vol*0.35,0.002,0.05);\n        zo.connect(zg); zg.connect(bus); zo2.connect(zg2); zg2.connect(bus);\n        zo.start(at); zo.stop(at+1); zo2.start(at); zo2.stop(at+0.3);\n      } else if (v.synth==='future'){\n        var att=v.att||0.01, dec=last?(v.decL||0.8):(v.dec||0.3);\n        var dest=bus;\n        if (A.createStereoPanner&&v.panW){\n          var pn=A.createStereoPanner();\n          pn.pan.setValueAtTime((i%2?1:-1)*v.panW*(0.4+0.6*i/v.seq.length),at);\n          pn.connect(bus); dest=pn;\n        }\n        (v.harm||[[1,1]]).forEach(function(hh){\n          var o=A.createOscillator(); o.type='sine';\n          o.frequency.setValueAtTime(f*hh[0],at);\n          if (last&&hh[0]===1){ var lf=A.createOscillator(); lf.frequency.value=4.6;\n            var lg=A.createGain(); lg.gain.value=6; lf.connect(lg); lg.connect(o.detune);\n            lf.start(at); lf.stop(at+dec*3); }\n          var g=env(at,vol*hh[1]*0.75,att,dec);\n          o.connect(g); g.connect(dest); o.start(at); o.stop(at+dec*5+0.3);\n        });\n        if (last){\n          [2,3].forEach(function(m,k){\n            var o=A.createOscillator(); o.type='sine';\n            o.frequency.setValueAtTime(f*m*(k?1.002:0.998),at+0.02);\n            var g=env(at+0.02,vol*(k?0.10:0.22),att+0.01,dec*0.9);\n            o.connect(g); g.connect(dest); o.start(at+0.02); o.stop(at+dec*5);\n          });\n          if (v.chord9){\n            [4,14].forEach(function(st2){\n              var o=A.createOscillator(); o.type='sine';\n              o.frequency.setValueAtTime(f*Math.pow(2,st2/12),at);\n              var g=env(at,vol*0.5,att,dec);\n              o.connect(g); g.connect(dest); o.start(at); o.stop(at+dec*5);\n            });\n          }\n        }\n      }\n    });\n    if (!v.synth){\n      var sb=A.createOscillator(); sb.type='sine';\n      sb.frequency.setValueAtTime(v.root/2,t0a);\n      sb.frequency.exponentialRampToValueAtTime(v.root,t0a+v.seq.length*v.step);\n      var sg=A.createGain(); sg.gain.setValueAtTime(0.05*amp,t0a);\n      sg.gain.setTargetAtTime(0.0001,t0a+v.seq.length*v.step,0.09);\n      sb.connect(sg); sg.connect(bus); sb.start(t0a); sb.stop(t0a+total+0.3);\n    }\n  }\n  function chime(){ jingle(0.55); }\n  var btn=document.getElementById('snd');\n  btn.addEventListener('click', function(){\n    if(!A) initAudio(); if(A.state==='suspended') A.resume();\n    on=!on; btn.textContent=on?'sound on':'sound off';\n    if(!on&&scratchLvl){ scratchLvl.gain.value=0; bodyLvl.gain.value=0; }\n  });\n\n  function backOut(p){ var c1=1.70158,c3=c1+1; return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2); }\n  function progress(tf){\n    tf=Math.max(0,Math.min(1,tf));\n    var a0=0.09, a1=0.95, s=a0*0.6, e=1-(1-a1)*0.6;\n    if (tf<a0) return (tf/a0)*(tf/a0)*s;\n    if (tf>a1){ var k=(tf-a1)/(1-a1); return e+(1-e)*(1-(1-k)*(1-k)); }\n    return s+(e-s)*(tf-a0)/(a1-a0);\n  }\n\n  var lastSnap=-1, chimed=-1, lastPhase='';\n  function render(tAbs){\n    var PACE=S.pace, SNAP=8*PACE+SNAP_DUR+220, DRAW=S.draw*1000, Hms=S.hold*1000, Fms=420;\n    var T=SNAP+DRAW+Hms+Fms, t=((tAbs%T)+T)%T;\n    var phase = t<SNAP?'a' : t<SNAP+DRAW?'d' : t<SNAP+DRAW+Hms?'h' : 'f';\n    var loopN=Math.floor(tAbs/T);\n\n    if (phase!==lastPhase){ if(phase==='a')lastSnap=-1; lastPhase=phase; }\n\n    /* cells */\n    var topSnap=-1;\n    cellEls.forEach(function(el,i){\n      var st=i*PACE, p=(t-st)/SNAP_DUR;\n      if (phase==='f'){ el.setAttribute('opacity',1); el.setAttribute('transform',''); return; }\n      if (p<=0){ el.setAttribute('opacity',0); return; }\n      if (p>=1){ el.setAttribute('opacity',1); el.setAttribute('transform',''); if(t<SNAP)topSnap=Math.max(topSnap,i); return; }\n      topSnap=Math.max(topSnap,i);\n      var sc=0.25+0.75*backOut(p);\n      var c=CELLS[i];\n      el.setAttribute('opacity',Math.min(1,p*3));\n      el.setAttribute('transform','translate('+(c[0]*(1-sc)).toFixed(2)+','+(c[1]*(1-sc)).toFixed(2)+') scale('+sc.toFixed(3)+')');\n    });\n    if (phase==='a'&&topSnap>lastSnap){ for(var i2=lastSnap+1;i2<=topSnap;i2++)snapSnd(i2); lastSnap=topSnap; }\n\n    /* the S */\n    if (phase==='a'){ drawInk(0); penAudio(0); word.style.opacity=0; }\n    if (phase==='d'){\n      var tf=(t-SNAP)/DRAW, p2=progress(tf);\n      drawInk(p2);\n      var vel=(progress(Math.min(1,tf+0.02))-progress(Math.max(0,tf-0.02)))/0.04;\n      penAudio(vel*0.9);\n      word.style.opacity=0;\n    }\n    if (phase==='h'){\n      drawInk(1);\n      penAudio(0);\n      var ht=t-SNAP-DRAW;\n      if (ht>=S.wdel*1000 && chimed!==loopN){ chime(); chimed=loopN; }\n      word.style.opacity=S.cap?Math.min(1,Math.max(0,(ht-S.wdel*1000)/(S.wfade*1000))):0;\n      markwrap.style.opacity=1;\n    } else if (phase!=='f') markwrap.style.opacity=1;\n    if (phase==='f'){\n      var ft=(t-SNAP-DRAW-Hms)/Fms;\n      drawInk(1); penAudio(0);\n      markwrap.style.opacity=1-ft;\n      word.style.opacity=(S.cap?1-ft:0);\n    }\n  }\n\n  var t0=performance.now();\n  function frame(now){ render(now-t0); requestAnimationFrame(frame); }\n\n  function bind(id,key,fmt){\n    var el=document.getElementById('t-'+id), out=document.getElementById('v-'+id);\n    el.value=S[key]; out.textContent=fmt(S[key]);\n    el.addEventListener('input', function(){ S[key]=parseFloat(el.value); out.textContent=fmt(S[key]); applyVoice(); save(); });\n  }\n  function bindSeg(id,key){\n    var box=document.getElementById('t-'+id);\n    function paint(){ Array.prototype.forEach.call(box.children,function(b){ b.classList.toggle('on', parseInt(b.dataset.v)===S[key]); }); }\n    box.addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return;\n      S[key]=parseInt(b.dataset.v); paint(); save(); });\n    paint();\n  }\n  document.getElementById('tw').addEventListener('click', function(){ document.getElementById('panel').classList.toggle('open'); });\n  document.getElementById('audition').addEventListener('click', function(){\n    if(!A) initAudio(); if(A.state==='suspended') A.resume();\n    if(!on){ on=true; btn.textContent='sound on'; }\n    jingle(0.55);\n  });\n\n  function start(){\n    build();\n    bind('pace','pace',function(v){return v+'ms';});\n    bind('draw','draw',function(v){return v.toFixed(1)+'s';});\n    bind('hold','hold',function(v){return v.toFixed(1)+'s';});\n    bind('wdel','wdel',function(v){return v.toFixed(2)+'s';});\n    bind('wfade','wfade',function(v){return v.toFixed(2)+'s';});\n    bind('sn','sn',function(v){return (SNAPV[Math.min(v,SNAPV.length)-1]||{}).name||('#'+v);});\n    bind('cv','cv',function(v){return (LVLUP[Math.min(v,LVLUP.length)-1]||{}).name||('#'+v);});\n    bind('sv','sv',function(v){return '#'+v;});\n    bind('vol','vol',function(v){return Math.round(v*100)+'%';});\n    bind('rvk','rvk',function(v){return Math.round(v*100)+'%';});\n    bind('eck','eck',function(v){return Math.round(v*100)+'%';});\n    bind('dtime','dtime',function(v){return Math.round(v*1000)+'ms';});\n    bindSeg('cap','cap');\n    t0=performance.now(); requestAnimationFrame(frame);\n  }\n  if (document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ setTimeout(start,60); });\n  else setTimeout(start,500);\n\n  window.seek=function(sec){ t0=performance.now()-sec*1000; };\n  window.renderAt=function(sec){ render(sec*1000); };\n})();\n<\u002Fscript>\n\n<\u002Fbody><\u002Fhtml>"
+  </script>
+</body>
+</html>
