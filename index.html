@@ -105,8 +105,11 @@
       .ms-build { margin-bottom: 16px; }
       /* a thumb needs 44px and a 12.5px mono line gives it 20, so the padding makes up the rest */
       .nav a { padding-block: 13px; }
-      .door { padding: 22px 0 24px 26px; }
-      .door-mark { top: 22px; }
+      /* the mark stays 34px until here; below this the padding it needs to clear no longer fits it,
+         so it shrinks to 24px too (was: padding shrank to 26px but the mark stayed 34px, so it
+         overlapped the wordmark by 8px on every door) */
+      .door { padding: 22px 0 24px 34px; }
+      .door-mark { top: 22px; width: 24px; height: 24px; }
       footer { flex-direction: column; gap: 8px; padding: 22px 0 34px; }
     }
   </style>
