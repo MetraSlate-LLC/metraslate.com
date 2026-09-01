@@ -12,6 +12,11 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <!-- pre-paint ground so the first frame is never a white flash -->
   <style>html{background:#000}</style>
+  <!-- Our own traffic count (D-400) — first-party, no cookie, no third-party tag. Deferred, so it
+       never delays a paint. It posts to beacon.metraslate.com, which does not resolve until the
+       tunnel in state/RUNBOOK-site-traffic-live.md is up; every failure path is silent by design,
+       so the page is identical either way. -->
+  <script defer src="/beacon.js"></script>
   <script type="module" crossorigin src="/assets/index-DCLg6_fk.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-oj_RdNUL.js">
   <link rel="modulepreload" crossorigin href="/assets/compose-B0ogB9T0.js">
