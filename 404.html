@@ -1,27 +1,22 @@
-<!DOCTYPE html><html lang="en" data-theme="dark" data-site-theme="light" style="color-scheme: light;" class="mk-document"><head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Title, description, canonical and every Open Graph tag are set per route by react-helmet-async
-       (src/blocks.tsx Head). A static default here would sit as a second, duplicate tag beside the
-       real one on every prerendered page. Only page-independent tags belong in this shell. -->
-  <meta property="og:type" content="website">
-  <meta name="theme-color" content="#000000">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <script>
-    (() => {
-      let preference;
-      try { preference = localStorage.getItem('metraslate-site-theme-preference'); } catch {}
-      const theme = preference === 'dark' || preference === 'light' ? preference : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.dataset.siteTheme = theme;
-      document.documentElement.style.colorScheme = theme;
-    })();
-  </script>
-  <style>html{background:light-dark(#fff,#000)}</style>
-  <!-- Cloudflare Web Analytics loads only on production and honors Global Privacy Control
-       and reduced-data preferences. See public/beacon.js. -->
-  <script defer="" src="/beacon.js"></script>
-  <script type="module" crossorigin="" src="/assets/index-oymj1ryr.js"></script>
-  <link rel="stylesheet" crossorigin="" href="/assets/index-CQ5y58sR.css">
-<title>MetraSlate</title><meta property="og:type" content="website"><meta property="og:site_name" content="MetraSlate"><meta property="og:image" content="https://metraslate.com/media/current/customer-dark.png"><meta property="og:image:alt" content="MetraSlate customer account and equipment service outlook"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Equipment and Business Software | MetraSlate"><meta name="twitter:description" content="Equipment and business software for customer requests, estimates, work orders and invoicing. Asset is the foundation; Standard adds industry workflows."><meta name="twitter:image" content="https://metraslate.com/media/current/customer-dark.png"><meta name="twitter:image:alt" content="MetraSlate customer account and equipment service outlook"><meta name="robots" content="index,follow"></head>
+<!doctype html>
+<html lang="en" data-theme="dark" class="dark">
+<head>
+  <title>MetraSlate</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Title, description, canonical and Open Graph tags are set per route by src/components.tsx
+       Head. Only page-independent tags belong in this shell, or every page would carry two. -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>html{background:#000;color-scheme:dark}</style>
+  <!-- Cloudflare Web Analytics loads only on the production hosts and honours Global Privacy
+       Control and reduced-data preferences. See public/beacon.js. -->
+  <script defer src="/beacon.js"></script>
+  <script type="module" crossorigin src="/assets/index-BeoQgoYM.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DpK2pw-Z.css">
+</head>
 <body>
-  <div id="root"></div></body></html>
+  <div id="root"></div>
+</body>
+</html>
