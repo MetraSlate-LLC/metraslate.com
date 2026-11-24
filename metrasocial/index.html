@@ -1,17 +1,32 @@
-<!DOCTYPE html><html lang="en" data-theme="dark" class="dark" data-prerendered="/metrasocial"><head>
+<!DOCTYPE html><html lang="en" data-theme="light" class="light" data-prerendered="/metrasocial"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Title, description, canonical and Open Graph tags are set per route by src/components.tsx
        Head. Only page-independent tags belong in this shell, or every page would carry two. -->
-  <meta name="theme-color" content="#000000">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="dark light">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <style>html{background:#000;color-scheme:dark}</style>
+  <style>html{background:#000;color-scheme:dark}html[data-theme=light]{background:#fff;color-scheme:light}</style>
+  <!-- A first visit follows the device's light or dark setting; a choice made with the header
+       switch is saved and wins from then on. Applied here, before the first paint, so the page
+       never flashes the other theme. The key is THEME_KEY in src/theme.ts. -->
+  <script>
+    (function () {
+      var theme
+      try { theme = localStorage.getItem('metraslate-theme') } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+      var root = document.documentElement
+      root.dataset.theme = theme
+      root.classList.remove('dark', 'light')
+      root.classList.add(theme)
+      document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#ffffff' : '#000000'
+    })()
+  </script>
   <!-- Cloudflare Web Analytics loads only on the production hosts and honours Global Privacy
        Control and reduced-data preferences. See public/beacon.js. -->
   <script defer="" src="/beacon.js"></script>
-  <script type="module" crossorigin="" src="/assets/index-DjrlQ_uh.js"></script>
-  <link rel="stylesheet" crossorigin="" href="/assets/index-CA30J7_V.css">
+  <script type="module" crossorigin="" src="/assets/index-vuafHXGU.js"></script>
+  <link rel="stylesheet" crossorigin="" href="/assets/index-3G5A6N5u.css">
 <title>MetraSocial by MetraSlate | Coming Soon</title><meta name="description" content="MetraSocial by MetraSlate. Coming Soon."><meta property="og:type" content="website"><meta property="og:site_name" content="MetraSlate"><meta property="og:title" content="MetraSocial by MetraSlate | Coming Soon"><meta property="og:description" content="MetraSocial by MetraSlate. Coming Soon."><meta property="og:url" content="https://metraslate.com/metrasocial"><meta property="og:image" content="https://metraslate.com/brand/metraslate-mark-accent.png"><meta property="og:image:alt" content="The MetraSlate mark"><meta name="twitter:card" content="summary"><link rel="canonical" href="https://metraslate.com/metrasocial"></head>
 <body>
   <div id="root"><main id="main" class="bare"><h1 class="bare-name">MetraSocial by MetraSlate</h1><p class="bare-note">Coming Soon</p></main></div>

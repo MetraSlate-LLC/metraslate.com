@@ -7,14 +7,29 @@
   <!-- Title, description, canonical and Open Graph tags are set per route by src/components.tsx
        Head. Only page-independent tags belong in this shell, or every page would carry two. -->
   <meta name="theme-color" content="#000000" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="dark light" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <style>html{background:#000;color-scheme:dark}</style>
+  <style>html{background:#000;color-scheme:dark}html[data-theme=light]{background:#fff;color-scheme:light}</style>
+  <!-- A first visit follows the device's light or dark setting; a choice made with the header
+       switch is saved and wins from then on. Applied here, before the first paint, so the page
+       never flashes the other theme. The key is THEME_KEY in src/theme.ts. -->
+  <script>
+    (function () {
+      var theme
+      try { theme = localStorage.getItem('metraslate-theme') } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+      var root = document.documentElement
+      root.dataset.theme = theme
+      root.classList.remove('dark', 'light')
+      root.classList.add(theme)
+      document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#ffffff' : '#000000'
+    })()
+  </script>
   <!-- Cloudflare Web Analytics loads only on the production hosts and honours Global Privacy
        Control and reduced-data preferences. See public/beacon.js. -->
   <script defer src="/beacon.js"></script>
-  <script type="module" crossorigin src="/assets/index-DjrlQ_uh.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CA30J7_V.css">
+  <script type="module" crossorigin src="/assets/index-vuafHXGU.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-3G5A6N5u.css">
 </head>
 <body>
   <div id="root"></div>
